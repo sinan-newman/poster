@@ -789,41 +789,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Download High-Res PNG
-  btnExportPng.addEventListener('click', async () => {
+  // --- Universal Rock-Solid Downloader (Blob-backed to bypass mobile Safari/Android data-URI blocks) ---
+  async function downloadPosterImage(format = 'png') {
+    const isJpeg = format.toLowerCase().includes('jp');
+    const ext = isJpeg ? 'jpg' : 'png';
+    const cleanTitle = (inputTitle.value || 'Poster')
+      .trim()
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .substring(0, 32);
+    const filename = `Scholarship-${cleanTitle || 'Poster'}.${ext}`;
+
     try {
-      const dataUrl = await generatePosterDataUrl('png');
-      const filename = `Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.png`;
+      const dataUrl = await generatePosterDataUrl(isJpeg ? 'jpeg' : 'png');
+      if (!dataUrl || dataUrl.length < 500) {
+        throw new Error('Image data was not generated.');
+      }
+
+      // Convert Data URL to binary Blob (Works reliably across all mobile & desktop browsers)
+      const parts = dataUrl.split(',');
+      const byteString = atob(parts[1]);
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      const mimeType = mimeMatch ? mimeMatch[1] : (isJpeg ? 'image/jpeg' : 'image/png');
       
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Trigger programmatic download
       const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = blobUrl;
       link.download = filename;
-      link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error('[Export PNG Error]', err);
-      alert('Error generating PNG export: ' + (err.message || 'Please check browser settings.'));
-    }
-  });
 
-  // Download High-Res JPG
-  if (btnExportJpg) {
-    btnExportJpg.addEventListener('click', async () => {
-      try {
-        const dataUrl = await generatePosterDataUrl('jpeg');
-        const filename = `Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.jpg`;
-        
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        console.error('[Export JPG Error]', err);
-        alert('Error generating JPG export: ' + (err.message || 'Please check browser settings.'));
-      }
+      setTimeout(() => {
+        try {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        } catch (e) {}
+      }, 3000);
+
+    } catch (err) {
+      console.error(`[Export ${ext.toUpperCase()} Error]`, err);
+      alert(`Error generating ${ext.toUpperCase()} export: ${err.message || 'Please check browser settings.'}`);
+    }
+  }
+
+  // --- Wire Up PNG & JPG Download Buttons (Direct bindings for 100% mobile reliability) ---
+  if (btnExportPng) btnExportPng.addEventListener('click', () => downloadPosterImage('png'));
+  if (btnExportJpg) btnExportJpg.addEventListener('click', () => downloadPosterImage('jpeg'));
+
+  const btnExportPngMobileTop = document.getElementById('btnExportPngMobileTop');
+  const btnExportJpgMobileTop = document.getElementById('btnExportJpgMobileTop');
+  const btnExportPngMobileBottom = document.getElementById('btnExportPngMobileBottom');
+  const btnExportJpgMobileBottom = document.getElementById('btnExportJpgMobileBottom');
+  const btnBrowseDbMobileTop = document.getElementById('btnBrowseDbMobileTop');
+  const btnBrowseDbMobileBottom = document.getElementById('btnBrowseDbMobileBottom');
+  const btnJumpPreviewMobile = document.getElementById('btnJumpPreviewMobile');
+
+  if (btnExportPngMobileTop) btnExportPngMobileTop.addEventListener('click', () => downloadPosterImage('png'));
+  if (btnExportJpgMobileTop) btnExportJpgMobileTop.addEventListener('click', () => downloadPosterImage('jpeg'));
+  if (btnExportPngMobileBottom) btnExportPngMobileBottom.addEventListener('click', () => downloadPosterImage('png'));
+  if (btnExportJpgMobileBottom) btnExportJpgMobileBottom.addEventListener('click', () => downloadPosterImage('jpeg'));
+
+  if (btnBrowseDbMobileTop) btnBrowseDbMobileTop.addEventListener('click', () => btnBrowseDb.click());
+  if (btnBrowseDbMobileBottom) btnBrowseDbMobileBottom.addEventListener('click', () => btnBrowseDb.click());
+  if (btnJumpPreviewMobile) {
+    btnJumpPreviewMobile.addEventListener('click', () => {
+      posterContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }
 
@@ -854,6 +893,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  const btnExportPdfMobileBottom = document.getElementById('btnExportPdfMobileBottom');
+  if (btnExportPdfMobileBottom) btnExportPdfMobileBottom.addEventListener('click', () => btnExportPdf.click());
+
   // Copy Image to Clipboard
   btnCopyImage.addEventListener('click', async () => {
     try {
@@ -875,29 +917,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Direct clipboard copy is not permitted by your browser security. You can use "Download PNG" instead!');
     }
   });
-
-  // --- Mobile Action Buttons Binding ---
-  const btnExportPngMobileTop = document.getElementById('btnExportPngMobileTop');
-  const btnBrowseDbMobileTop = document.getElementById('btnBrowseDbMobileTop');
-  const btnExportPngMobileBottom = document.getElementById('btnExportPngMobileBottom');
-  const btnExportPdfMobileBottom = document.getElementById('btnExportPdfMobileBottom');
-  const btnBrowseDbMobileBottom = document.getElementById('btnBrowseDbMobileBottom');
-  const btnJumpPreviewMobile = document.getElementById('btnJumpPreviewMobile');
-
-  if (btnExportPngMobileTop) btnExportPngMobileTop.addEventListener('click', () => btnExportPng.click());
-  const btnExportJpgMobileTop = document.getElementById('btnExportJpgMobileTop');
-  const btnExportJpgMobileBottom = document.getElementById('btnExportJpgMobileBottom');
-  if (btnExportJpgMobileTop) btnExportJpgMobileTop.addEventListener('click', () => btnExportJpg.click());
-  if (btnExportJpgMobileBottom) btnExportJpgMobileBottom.addEventListener('click', () => btnExportJpg.click());
-  if (btnBrowseDbMobileTop) btnBrowseDbMobileTop.addEventListener('click', () => btnBrowseDb.click());
-  if (btnExportPngMobileBottom) btnExportPngMobileBottom.addEventListener('click', () => btnExportPng.click());
-  if (btnExportPdfMobileBottom) btnExportPdfMobileBottom.addEventListener('click', () => btnExportPdf.click());
-  if (btnBrowseDbMobileBottom) btnBrowseDbMobileBottom.addEventListener('click', () => btnBrowseDb.click());
-  if (btnJumpPreviewMobile) {
-    btnJumpPreviewMobile.addEventListener('click', () => {
-      posterContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }
 
   // Initialize
   renderModalList(liveList);
