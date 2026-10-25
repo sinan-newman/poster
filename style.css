@@ -724,7 +724,12 @@
 .poster-last-date-line {
   display: inline-flex;
   align-items: center;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: nowrap !important;
+  max-width: 100%;
+}
+.poster-last-date-line * {
+  white-space: nowrap !important;
 }
 .website-pill {
   display: inline-flex;
