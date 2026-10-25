@@ -693,19 +693,16 @@
   opacity: 0.7;
 }
 
-/* Responsive Scaling for Smaller Viewports */
+/* Responsive Scaling for Smaller Viewports (No fixed height clipping) */
 @media (max-width: 640px) {
+  .poster-preview-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    justify-content: center;
+  }
   .poster-canvas {
     width: 100% !important;
-    max-width: 360px !important;
-  }
-  .poster-canvas.ratio-portrait {
-    height: 480px !important;
-  }
-  .poster-canvas.ratio-square {
-    height: 380px !important;
-  }
-  .poster-canvas.ratio-story {
-    height: 600px !important;
+    max-width: 440px !important;
+    height: auto !important;
   }
 }

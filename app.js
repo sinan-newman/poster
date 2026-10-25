@@ -672,8 +672,15 @@ document.addEventListener('DOMContentLoaded', () => {
   async function generatePosterDataUrl() {
     exportModal.classList.remove('hidden');
 
+    // Save current inline styles to restore after export
+    const prevWidth = posterContainer.style.width;
+    const prevHeight = posterContainer.style.height;
+    const prevMaxWidth = posterContainer.style.maxWidth;
+    const prevTransform = posterContainer.style.transform;
+    const prevTransition = posterContainer.style.transition;
+
     try {
-      // 1. Ensure custom fonts are loaded
+      // 1. Ensure custom fonts are ready
       if (document.fonts && document.fonts.ready) {
         try {
           await document.fonts.ready;
@@ -682,12 +689,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Small tick to ensure DOM is settled
-      await new Promise(resolve => setTimeout(resolve, 80));
+      // 2. Normalize poster dimensions to canonical desktop width so mobile screens don't crush output
+      const isSquare = posterContainer.classList.contains('ratio-square');
+      const isStory = posterContainer.classList.contains('ratio-story');
+      const canonicalWidth = isSquare ? '500px' : isStory ? '405px' : '480px';
 
-      const posterNode = posterContainer;
+      posterContainer.style.transition = 'none';
+      posterContainer.style.width = canonicalWidth;
+      posterContainer.style.maxWidth = 'none';
+      posterContainer.style.height = 'auto';
+      posterContainer.style.transform = 'none';
 
-      // Ensure inline base64 assets are active to prevent any CORS/tainted-canvas blocks
+      // Ensure inline base64 assets are active
       if (window.SCHOLARISE_ASSETS) {
         if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng && !displayLogoImg.src.startsWith('data:')) {
           displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
@@ -697,13 +710,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 2. Primary Engine: html-to-image (Uses native browser foreignObject - 100% identical to preview)
-      if (window.htmlToImage) {
+      // Small tick for layout reflow
+      await new Promise(resolve => setTimeout(resolve, 80));
+
+      const posterNode = posterContainer;
+
+      // 3. Primary Engine: html2canvas (Renders all fonts, Malayalam, icons, and layout 100% identically to preview)
+      if (window.html2canvas) {
+        try {
+          const canvas = await window.html2canvas(posterNode, {
+            scale: 2.5,
+            useCORS: true,
+            allowTaint: true,
+            scrollX: 0,
+            scrollY: 0,
+            x: 0,
+            y: 0,
+            width: posterNode.offsetWidth,
+            height: posterNode.offsetHeight,
+            backgroundColor: null,
+            logging: false
+          });
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          if (dataUrl && dataUrl.length > 500) {
+            return dataUrl;
+          }
+        } catch (h2cErr) {
+          console.warn('[Export] html2canvas error, trying htmlToImage fallback...', h2cErr);
+        }
+      }
+
+      // 4. Secondary Engine: html-to-image with hidden-node filter
+      if (window.htmlToImage && window.htmlToImage.toPng) {
+        const filter = (node) => {
+          if (node.classList && node.classList.contains('hidden')) return false;
+          if (node.tagName === 'IMG' && (!node.getAttribute('src') || node.getAttribute('src') === '')) return false;
+          return true;
+        };
+
         const h2iOptions = {
           pixelRatio: 2.5,
-          skipFonts: true,      // Bypass cross-origin CSS rule reading to prevent DOMSecurityError
-          fontEmbedCSS: '',      // Do not attempt to download/embed external Google font files
-          cacheBust: false,      // Prevent unnecessary network fetch requests on base64 assets
+          skipFonts: true,
+          fontEmbedCSS: '',
+          cacheBust: false,
+          filter: filter,
           backgroundColor: null,
           style: {
             margin: '0',
@@ -711,51 +761,20 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         };
 
-        if (window.htmlToImage.toPng) {
-          try {
-            const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
-            if (dataUrl && dataUrl.length > 500) {
-              return dataUrl;
-            }
-          } catch (h2iPngErr) {
-            console.warn('[Export] htmlToImage.toPng encountered an issue, trying toCanvas...', h2iPngErr);
-          }
-        }
-
-        if (window.htmlToImage.toCanvas) {
-          try {
-            const canvas = await window.htmlToImage.toCanvas(posterNode, h2iOptions);
-            const dataUrl = canvas.toDataURL('image/png', 1.0);
-            if (dataUrl && dataUrl.length > 500) {
-              return dataUrl;
-            }
-          } catch (h2iCanvasErr) {
-            console.warn('[Export] htmlToImage.toCanvas failed, falling back to html2canvas...', h2iCanvasErr);
-          }
+        const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
+        if (dataUrl && dataUrl.length > 500) {
+          return dataUrl;
         }
       }
 
-      // 3. Fallback Engine: html2canvas with explicit dimensions and no scroll offset
-      if (window.html2canvas) {
-        console.log('[Export] Using html2canvas fallback renderer...');
-        const canvas = await window.html2canvas(posterNode, {
-          scale: 2.5,
-          useCORS: true,
-          allowTaint: true,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0,
-          width: posterNode.offsetWidth,
-          height: posterNode.offsetHeight,
-          backgroundColor: null,
-          logging: false
-        });
-        return canvas.toDataURL('image/png', 1.0);
-      }
-
-      throw new Error('No supported export library available in this environment.');
+      throw new Error('Could not generate export canvas.');
     } finally {
+      // Restore original inline styles
+      posterContainer.style.width = prevWidth;
+      posterContainer.style.height = prevHeight;
+      posterContainer.style.maxWidth = prevMaxWidth;
+      posterContainer.style.transform = prevTransform;
+      posterContainer.style.transition = prevTransition;
       exportModal.classList.add('hidden');
     }
   }
