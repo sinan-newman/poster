@@ -693,14 +693,54 @@
   opacity: 0.7;
 }
 
-/* Responsive Scaling for Smaller Viewports (No fixed height clipping) */
+/* Precise Alignment for Badges, Headers, and Icons (Flawless Canvas/Preview Parity) */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+.section-header-row .avatar-icon,
+.section-header-row .stat-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.section-header-row h4,
+.section-header-row .section-title {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+.poster-badge {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+.top-qr-pill {
+  display: flex;
+  align-items: center;
+}
+.poster-last-date-line {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+.website-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Responsive Scaling for Smaller Viewports (No fixed height clipping, preserves desktop export canvas) */
 @media (max-width: 640px) {
   .poster-preview-wrapper {
     overflow-x: auto;
     width: 100%;
     justify-content: center;
   }
-  .poster-canvas {
+  .poster-preview-wrapper > .poster-canvas:not(.exporting-canvas) {
     width: 100% !important;
     max-width: 440px !important;
     height: auto !important;

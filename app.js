@@ -680,16 +680,40 @@ document.addEventListener('DOMContentLoaded', () => {
   async function generatePosterDataUrl(format = 'png') {
     exportModal.classList.remove('hidden');
 
-    const prevWidth = posterContainer.style.width;
-    const prevHeight = posterContainer.style.height;
-    const prevMaxWidth = posterContainer.style.maxWidth;
-    const prevTransform = posterContainer.style.transform;
-    const prevTransition = posterContainer.style.transition;
-
     const isJpeg = format.toLowerCase().includes('jp');
     const mimeType = isJpeg ? 'image/jpeg' : 'image/png';
     const quality = isJpeg ? 0.95 : 1.0;
     const bgColor = isJpeg ? getThemeBgColor() : null;
+
+    // Create an isolated export sandbox offscreen with fixed desktop width
+    // completely shielded from mobile viewport constraints or touch scrolls
+    const sandbox = document.createElement('div');
+    sandbox.style.cssText = 'position:fixed; left:-9999px; top:0; width:1200px; height:auto; z-index:-9999; opacity:0; pointer-events:none;';
+
+    const isSquare = posterContainer.classList.contains('ratio-square');
+    const isStory = posterContainer.classList.contains('ratio-story');
+    const canonicalWidth = isSquare ? '500px' : isStory ? '405px' : '480px';
+
+    const clone = posterContainer.cloneNode(true);
+    clone.id = 'posterCloneForExport';
+    clone.classList.add('exporting-canvas');
+    clone.style.width = canonicalWidth;
+    clone.style.minWidth = canonicalWidth;
+    clone.style.maxWidth = canonicalWidth;
+    clone.style.height = 'auto';
+    clone.style.transform = 'none';
+    clone.style.transition = 'none';
+    clone.style.margin = '0';
+
+    if (window.SCHOLARISE_ASSETS) {
+      const cloneLogo = clone.querySelector('#displayLogoImg');
+      const cloneQr = clone.querySelector('#displayQrImgTop');
+      if (cloneLogo && window.SCHOLARISE_ASSETS.logoPng) cloneLogo.src = window.SCHOLARISE_ASSETS.logoPng;
+      if (cloneQr && window.SCHOLARISE_ASSETS.whatsappQrJpg) cloneQr.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
+    }
+
+    sandbox.appendChild(clone);
+    document.body.appendChild(sandbox);
 
     try {
       if (document.fonts && document.fonts.ready) {
@@ -700,42 +724,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      const isSquare = posterContainer.classList.contains('ratio-square');
-      const isStory = posterContainer.classList.contains('ratio-story');
-      const canonicalWidth = isSquare ? '500px' : isStory ? '405px' : '480px';
-
-      posterContainer.style.transition = 'none';
-      posterContainer.style.width = canonicalWidth;
-      posterContainer.style.maxWidth = 'none';
-      posterContainer.style.height = 'auto';
-      posterContainer.style.transform = 'none';
-
-      if (window.SCHOLARISE_ASSETS) {
-        if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng && !displayLogoImg.src.startsWith('data:')) {
-          displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
-        }
-        if (displayQrImgTop && window.SCHOLARISE_ASSETS.whatsappQrJpg && !displayQrImgTop.src.startsWith('data:')) {
-          displayQrImgTop.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
-        }
-      }
-
       await new Promise(resolve => setTimeout(resolve, 80));
 
-      const posterNode = posterContainer;
-
-      // 1. Primary Engine: html2canvas
+      // 1. Primary Engine: html2canvas on isolated clean clone
       if (window.html2canvas) {
         try {
-          const canvas = await window.html2canvas(posterNode, {
+          const canvas = await window.html2canvas(clone, {
             scale: 2.5,
             useCORS: true,
             allowTaint: true,
-            scrollX: 0,
-            scrollY: 0,
-            x: 0,
-            y: 0,
-            width: posterNode.offsetWidth,
-            height: posterNode.offsetHeight,
             backgroundColor: bgColor,
             logging: false
           });
@@ -748,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 2. Secondary Engine: html-to-image
+      // 2. Secondary Engine: html-to-image fallback
       if (window.htmlToImage) {
         const filter = (node) => {
           if (node.classList && node.classList.contains('hidden')) return false;
@@ -762,29 +759,21 @@ document.addEventListener('DOMContentLoaded', () => {
           fontEmbedCSS: '',
           cacheBust: false,
           filter: filter,
-          backgroundColor: bgColor,
-          style: {
-            margin: '0',
-            transform: 'none'
-          }
+          backgroundColor: bgColor
         };
 
         if (isJpeg && window.htmlToImage.toJpeg) {
-          const dataUrl = await window.htmlToImage.toJpeg(posterNode, { ...h2iOptions, quality: 0.95 });
+          const dataUrl = await window.htmlToImage.toJpeg(clone, { ...h2iOptions, quality: 0.95 });
           if (dataUrl && dataUrl.length > 500) return dataUrl;
         } else if (window.htmlToImage.toPng) {
-          const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
+          const dataUrl = await window.htmlToImage.toPng(clone, h2iOptions);
           if (dataUrl && dataUrl.length > 500) return dataUrl;
         }
       }
 
       throw new Error('Could not generate export canvas.');
     } finally {
-      posterContainer.style.width = prevWidth;
-      posterContainer.style.height = prevHeight;
-      posterContainer.style.maxWidth = prevMaxWidth;
-      posterContainer.style.transform = prevTransform;
-      posterContainer.style.transition = prevTransition;
+      sandbox.remove();
       exportModal.classList.add('hidden');
     }
   }
