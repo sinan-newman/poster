@@ -565,21 +565,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- Export Functions ---
-  async function generateCanvas() {
+  // --- Export Functions (Pixel-Perfect Browser Native Capture) ---
+  async function generatePosterDataUrl() {
     exportModal.classList.remove('hidden');
 
-    const options = {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: null,
-      logging: false
-    };
-
     try {
-      const canvas = await html2canvas(posterContainer, options);
-      return canvas;
+      // Allow custom fonts to settle
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      // 1. Primary: html-to-image (uses native browser rendering engine - 100% identical to preview)
+      if (window.htmlToImage && window.htmlToImage.toPng) {
+        const dataUrl = await window.htmlToImage.toPng(posterContainer, {
+          pixelRatio: 2.5,
+          cacheBust: true,
+          backgroundColor: null,
+          style: {
+            margin: '0',
+            transform: 'none'
+          }
+        });
+        return dataUrl;
+      }
+
+      // 2. Fallback: html2canvas with explicit dimensions and no scroll offset
+      const canvas = await html2canvas(posterContainer, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        width: posterContainer.offsetWidth,
+        height: posterContainer.offsetHeight,
+        backgroundColor: null,
+        logging: false
+      });
+      return canvas.toDataURL('image/png', 1.0);
     } finally {
       exportModal.classList.add('hidden');
     }
@@ -588,12 +612,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Download High-Res PNG
   btnExportPng.addEventListener('click', async () => {
     try {
-      const canvas = await generateCanvas();
+      const dataUrl = await generatePosterDataUrl();
       const filename = `Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.png`;
       
       const link = document.createElement('a');
       link.download = filename;
-      link.href = canvas.toDataURL('image/png', 1.0);
+      link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -606,17 +630,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Download Print-Ready PDF
   btnExportPdf.addEventListener('click', async () => {
     try {
-      const canvas = await generateCanvas();
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      const dataUrl = await generatePosterDataUrl();
       
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise(resolve => { img.onload = resolve; });
+
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'px',
-        format: [canvas.width / 3, canvas.height / 3]
+        format: [img.width / 2.5, img.height / 2.5]
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 3, canvas.height / 3);
+      pdf.addImage(dataUrl, 'PNG', 0, 0, img.width / 2.5, img.height / 2.5);
       pdf.save(`Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.pdf`);
     } catch (err) {
       alert('Error creating PDF export.');
@@ -627,22 +654,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Copy Image to Clipboard
   btnCopyImage.addEventListener('click', async () => {
     try {
-      const canvas = await generateCanvas();
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          alert('Could not copy poster to clipboard.');
-          return;
-        }
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        
-        const originalIcon = btnCopyImage.innerHTML;
-        btnCopyImage.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i>';
-        setTimeout(() => {
-          btnCopyImage.innerHTML = originalIcon;
-        }, 2000);
-      });
+      const dataUrl = await generatePosterDataUrl();
+      const resp = await fetch(dataUrl);
+      const blob = await resp.blob();
+
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      
+      const originalIcon = btnCopyImage.innerHTML;
+      btnCopyImage.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i>';
+      setTimeout(() => {
+        btnCopyImage.innerHTML = originalIcon;
+      }, 2000);
     } catch (err) {
       alert('Copying to clipboard is not supported in this browser environment. You can use "Download PNG" instead!');
       console.error(err);

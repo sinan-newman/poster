@@ -16,7 +16,8 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <!-- html2canvas & jsPDF for HD exports -->
+  <!-- html-to-image (Pixel-perfect browser native capture) & jsPDF for HD exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
@@ -333,11 +334,11 @@
             <div class="bg-decor-dots"></div>
           </div>
 
-          <!-- Poster Content Layout: Flex container engineered so nothing gets clipped -->
-          <div class="poster-inner-content relative z-10 h-full flex flex-col justify-between">
+          <!-- Poster Content Layout: Flex container engineered so nothing gets mixed -->
+          <div class="poster-inner-content relative z-10 flex flex-col justify-between gap-3">
 
             <!-- Top Row: Badge (Left) + WhatsApp QR Pill (Right, replacing callout) -->
-            <div class="poster-header-section">
+            <div class="poster-header-section flex-shrink-0">
               <div class="flex items-center justify-between gap-2">
                 <!-- Badge Pill -->
                 <div id="posterBadgePill" class="poster-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold tracking-wide uppercase shadow-sm">
@@ -431,7 +432,7 @@
             </div>
 
             <!-- Middle Section: Eligibility Card & Full-Width Multi-Line Amount Card -->
-            <div class="poster-middle-section space-y-2.5 my-auto">
+            <div class="poster-middle-section flex-1 flex flex-col justify-center gap-2.5">
               
               <!-- Eligibility Card -->
               <div class="poster-card eligibility-card rounded-2xl p-3 shadow-sm border">
