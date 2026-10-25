@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Controls & Modals
   const btnReset = document.getElementById('btnReset');
   const btnExportPng = document.getElementById('btnExportPng');
+  const btnExportJpg = document.getElementById('btnExportJpg');
   const btnExportPdf = document.getElementById('btnExportPdf');
   const btnCopyImage = document.getElementById('btnCopyImage');
   const exportModal = document.getElementById('exportModal');
@@ -669,18 +670,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Export Functions (Pixel-Perfect Browser Native Capture) ---
-  async function generatePosterDataUrl() {
+  function getThemeBgColor() {
+    if (posterContainer.classList.contains('theme-lavender')) return '#F7F5FC';
+    if (posterContainer.classList.contains('theme-editorial')) return '#F5F3EC';
+    if (posterContainer.classList.contains('theme-navy-yellow')) return '#0B2545';
+    return '#F7FAF8'; // theme-teal default
+  }
+
+  async function generatePosterDataUrl(format = 'png') {
     exportModal.classList.remove('hidden');
 
-    // Save current inline styles to restore after export
     const prevWidth = posterContainer.style.width;
     const prevHeight = posterContainer.style.height;
     const prevMaxWidth = posterContainer.style.maxWidth;
     const prevTransform = posterContainer.style.transform;
     const prevTransition = posterContainer.style.transition;
 
+    const isJpeg = format.toLowerCase().includes('jp');
+    const mimeType = isJpeg ? 'image/jpeg' : 'image/png';
+    const quality = isJpeg ? 0.95 : 1.0;
+    const bgColor = isJpeg ? getThemeBgColor() : null;
+
     try {
-      // 1. Ensure custom fonts are ready
       if (document.fonts && document.fonts.ready) {
         try {
           await document.fonts.ready;
@@ -689,7 +700,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 2. Normalize poster dimensions to canonical desktop width so mobile screens don't crush output
       const isSquare = posterContainer.classList.contains('ratio-square');
       const isStory = posterContainer.classList.contains('ratio-story');
       const canonicalWidth = isSquare ? '500px' : isStory ? '405px' : '480px';
@@ -700,7 +710,6 @@ document.addEventListener('DOMContentLoaded', () => {
       posterContainer.style.height = 'auto';
       posterContainer.style.transform = 'none';
 
-      // Ensure inline base64 assets are active
       if (window.SCHOLARISE_ASSETS) {
         if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng && !displayLogoImg.src.startsWith('data:')) {
           displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
@@ -710,12 +719,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Small tick for layout reflow
       await new Promise(resolve => setTimeout(resolve, 80));
 
       const posterNode = posterContainer;
 
-      // 3. Primary Engine: html2canvas (Renders all fonts, Malayalam, icons, and layout 100% identically to preview)
+      // 1. Primary Engine: html2canvas
       if (window.html2canvas) {
         try {
           const canvas = await window.html2canvas(posterNode, {
@@ -728,10 +736,10 @@ document.addEventListener('DOMContentLoaded', () => {
             y: 0,
             width: posterNode.offsetWidth,
             height: posterNode.offsetHeight,
-            backgroundColor: null,
+            backgroundColor: bgColor,
             logging: false
           });
-          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          const dataUrl = canvas.toDataURL(mimeType, quality);
           if (dataUrl && dataUrl.length > 500) {
             return dataUrl;
           }
@@ -740,8 +748,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 4. Secondary Engine: html-to-image with hidden-node filter
-      if (window.htmlToImage && window.htmlToImage.toPng) {
+      // 2. Secondary Engine: html-to-image
+      if (window.htmlToImage) {
         const filter = (node) => {
           if (node.classList && node.classList.contains('hidden')) return false;
           if (node.tagName === 'IMG' && (!node.getAttribute('src') || node.getAttribute('src') === '')) return false;
@@ -754,22 +762,24 @@ document.addEventListener('DOMContentLoaded', () => {
           fontEmbedCSS: '',
           cacheBust: false,
           filter: filter,
-          backgroundColor: null,
+          backgroundColor: bgColor,
           style: {
             margin: '0',
             transform: 'none'
           }
         };
 
-        const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
-        if (dataUrl && dataUrl.length > 500) {
-          return dataUrl;
+        if (isJpeg && window.htmlToImage.toJpeg) {
+          const dataUrl = await window.htmlToImage.toJpeg(posterNode, { ...h2iOptions, quality: 0.95 });
+          if (dataUrl && dataUrl.length > 500) return dataUrl;
+        } else if (window.htmlToImage.toPng) {
+          const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
+          if (dataUrl && dataUrl.length > 500) return dataUrl;
         }
       }
 
       throw new Error('Could not generate export canvas.');
     } finally {
-      // Restore original inline styles
       posterContainer.style.width = prevWidth;
       posterContainer.style.height = prevHeight;
       posterContainer.style.maxWidth = prevMaxWidth;
@@ -782,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Download High-Res PNG
   btnExportPng.addEventListener('click', async () => {
     try {
-      const dataUrl = await generatePosterDataUrl();
+      const dataUrl = await generatePosterDataUrl('png');
       const filename = `Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.png`;
       
       const link = document.createElement('a');
@@ -796,6 +806,26 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Error generating PNG export: ' + (err.message || 'Please check browser settings.'));
     }
   });
+
+  // Download High-Res JPG
+  if (btnExportJpg) {
+    btnExportJpg.addEventListener('click', async () => {
+      try {
+        const dataUrl = await generatePosterDataUrl('jpeg');
+        const filename = `Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.jpg`;
+        
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error('[Export JPG Error]', err);
+        alert('Error generating JPG export: ' + (err.message || 'Please check browser settings.'));
+      }
+    });
+  }
 
   // Download Print-Ready PDF
   btnExportPdf.addEventListener('click', async () => {
@@ -855,6 +885,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnJumpPreviewMobile = document.getElementById('btnJumpPreviewMobile');
 
   if (btnExportPngMobileTop) btnExportPngMobileTop.addEventListener('click', () => btnExportPng.click());
+  const btnExportJpgMobileTop = document.getElementById('btnExportJpgMobileTop');
+  const btnExportJpgMobileBottom = document.getElementById('btnExportJpgMobileBottom');
+  if (btnExportJpgMobileTop) btnExportJpgMobileTop.addEventListener('click', () => btnExportJpg.click());
+  if (btnExportJpgMobileBottom) btnExportJpgMobileBottom.addEventListener('click', () => btnExportJpg.click());
   if (btnBrowseDbMobileTop) btnBrowseDbMobileTop.addEventListener('click', () => btnBrowseDb.click());
   if (btnExportPngMobileBottom) btnExportPngMobileBottom.addEventListener('click', () => btnExportPng.click());
   if (btnExportPdfMobileBottom) btnExportPdfMobileBottom.addEventListener('click', () => btnExportPdf.click());

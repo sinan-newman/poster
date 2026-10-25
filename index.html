@@ -54,9 +54,13 @@
             <i class="fa-solid fa-database text-emerald-600 text-[10px]"></i>
             <span class="text-[11px]">Catalog</span>
           </button>
-          <button type="button" id="btnExportPngMobileTop" class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition active:scale-95">
-            <i class="fa-solid fa-download text-[11px]"></i>
-            <span>Download</span>
+          <button type="button" id="btnExportPngMobileTop" title="Download PNG" class="flex items-center gap-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-download text-[10px]"></i>
+            <span>PNG</span>
+          </button>
+          <button type="button" id="btnExportJpgMobileTop" title="Download JPG" class="flex items-center gap-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-image text-[10px]"></i>
+            <span>JPG</span>
           </button>
         </div>
       </div>
@@ -89,9 +93,14 @@
             <span>Catalog (108)</span>
           </button>
 
-          <button id="btnExportPng" class="hidden lg:flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+          <button id="btnExportPng" class="hidden lg:flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition active:scale-95">
             <i class="fa-solid fa-download"></i>
-            <span>Download PNG</span>
+            <span>PNG</span>
+          </button>
+
+          <button id="btnExportJpg" class="hidden lg:flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-image"></i>
+            <span>JPG</span>
           </button>
 
           <button id="btnExportPdf" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition active:scale-95">
@@ -596,27 +605,33 @@
   </div>
 
   <!-- Sticky Floating Bottom Action Bar for Mobile Viewports (Always Visible & Accessible) -->
-  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-2xl flex lg:hidden items-center justify-between gap-2">
+  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2.5 py-2 shadow-2xl flex lg:hidden items-center justify-between gap-1.5">
     <!-- Quick Catalog button -->
-    <button type="button" id="btnBrowseDbMobileBottom" title="Open Catalog (108)" class="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 font-bold px-3 py-2.5 rounded-xl transition active:scale-95 text-xs flex-shrink-0">
+    <button type="button" id="btnBrowseDbMobileBottom" title="Open Catalog (108)" class="flex items-center justify-center gap-1 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 font-bold px-2.5 py-2.5 rounded-xl transition active:scale-95 text-xs flex-shrink-0">
       <i class="fa-solid fa-database text-emerald-600 text-xs"></i>
-      <span class="text-xs">Catalog</span>
+      <span class="text-[11px]">Catalog</span>
     </button>
 
-    <!-- Prominent Download PNG button -->
-    <button type="button" id="btnExportPngMobileBottom" class="flex-1 flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-extrabold py-2.5 px-3 rounded-xl shadow-md transition active:scale-95 text-xs">
-      <i class="fa-solid fa-download text-sm"></i>
-      <span>Download PNG</span>
+    <!-- Download PNG button -->
+    <button type="button" id="btnExportPngMobileBottom" class="flex-1 flex items-center justify-center gap-1 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-extrabold py-2.5 px-2 rounded-xl shadow-md transition active:scale-95 text-xs">
+      <i class="fa-solid fa-download text-xs"></i>
+      <span>PNG</span>
+    </button>
+
+    <!-- Download JPG button -->
+    <button type="button" id="btnExportJpgMobileBottom" class="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-extrabold py-2.5 px-2 rounded-xl shadow-md transition active:scale-95 text-xs">
+      <i class="fa-solid fa-image text-xs"></i>
+      <span>JPG</span>
     </button>
 
     <!-- PDF button -->
-    <button type="button" id="btnExportPdfMobileBottom" title="Export PDF" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition active:scale-95 text-xs flex-shrink-0">
+    <button type="button" id="btnExportPdfMobileBottom" title="Export PDF" class="flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-bold py-2.5 px-2.5 rounded-xl shadow-sm transition active:scale-95 text-xs flex-shrink-0">
       <i class="fa-solid fa-file-pdf text-xs text-rose-400"></i>
-      <span>PDF</span>
+      <span class="text-[11px]">PDF</span>
     </button>
 
     <!-- Quick Scroll to Live Canvas -->
-    <button type="button" id="btnJumpPreviewMobile" title="Scroll down to live preview" class="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition active:scale-95 flex-shrink-0 border border-slate-200">
+    <button type="button" id="btnJumpPreviewMobile" title="Scroll down to live preview" class="flex items-center justify-center w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition active:scale-95 flex-shrink-0 border border-slate-200">
       <i class="fa-solid fa-eye text-xs"></i>
     </button>
   </div>
