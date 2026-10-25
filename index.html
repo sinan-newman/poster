@@ -208,27 +208,43 @@
           <input type="text" id="inputTagline" value="" placeholder="Leave blank or enter custom subtitle (e.g. Apply Now)" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
         </div>
 
-        <!-- Eligibility Criteria (Supports 15+ Lines) -->
+        <!-- Eligibility Criteria (Supports 15+ Lines & Bold Ctrl+B) -->
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
-            <span>Eligibility Criteria (From Full Description)</span>
-            <span class="text-[10px] text-teal-600 font-semibold"><i class="fa-solid fa-check mr-1"></i>Supports 15+ Lines</span>
-          </label>
-          <textarea id="inputEligibility" rows="8" class="w-full text-xs p-3 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-700">
+              Eligibility Criteria
+              <span class="text-[10px] font-normal text-slate-400">• Supports 15+ lines</span>
+            </label>
+            <button type="button" id="btnBoldEligibility" title="Toggle Bold on selected text (Ctrl+B)" class="px-2.5 py-0.5 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-md transition active:scale-95 flex items-center gap-1 shadow-2xs cursor-pointer">
+              <i class="fa-solid fa-bold text-[10px]"></i>
+              <span>Bold</span>
+              <kbd class="text-[9px] bg-white px-1 py-0.5 rounded border border-slate-200 text-slate-500 font-mono">Ctrl+B</kbd>
+            </button>
+          </div>
+          <textarea id="inputEligibility" rows="8" class="w-full text-xs p-3 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed" placeholder="Type eligibility criteria... Select any text and press Ctrl+B to bold."></textarea>
+          <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+            <span>💡 Select any text and press <kbd class="font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200 text-slate-600 font-bold">Ctrl+B</kbd> to make it bold</span>
+            <span class="text-teal-600 font-semibold">Malayalam & English</span>
+          </div>
         </div>
 
-        <!-- Deadline & Amount (Supports 15+ Lines) -->
+        <!-- Deadline & Amount (Supports 15+ Lines & Bold Ctrl+B) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Last Date (Deadline)</label>
             <input type="text" id="inputDeadline" value="23 November 2026" placeholder="e.g. 23 November 2026" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
-              <span>Scholarship Amount</span>
-              <span class="text-[10px] text-teal-600 font-medium">Supports 15+ lines</span>
-            </label>
-            <textarea id="inputAmount" rows="6" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed" placeholder="Enter amount or multi-line fee breakdown"></textarea>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-medium text-slate-700">Scholarship Amount</label>
+              <button type="button" id="btnBoldAmount" title="Toggle Bold on selected text (Ctrl+B)" class="px-2 py-0.5 text-[10.5px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-md transition active:scale-95 flex items-center gap-1 shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-bold text-[9px]"></i>
+                <span>Bold</span>
+                <kbd class="text-[8.5px] bg-white px-1 py-0.2 rounded border border-slate-200 text-slate-500 font-mono">Ctrl+B</kbd>
+              </button>
+            </div>
+            <textarea id="inputAmount" rows="6" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed" placeholder="Enter amount or fee breakdown. Select text and press Ctrl+B to bold."></textarea>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Select text & press <kbd class="font-mono bg-slate-100 px-1 py-0.2 rounded border text-slate-600">Ctrl+B</kbd></span>
           </div>
         </div>
 
@@ -435,32 +451,30 @@
             </div>
 
             <!-- Middle Section: Eligibility Card & Full-Width Multi-Line Amount Card -->
-            <div class="poster-middle-section flex-1 flex flex-col justify-center gap-2.5">
+            <div class="poster-middle-section flex flex-col gap-3">
               
               <!-- Eligibility Card -->
-              <div class="poster-card eligibility-card rounded-2xl p-3 shadow-sm border">
-                <div class="flex items-start gap-2.5">
-                  <div id="eligibilityAvatar" class="avatar-icon w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-sm">
-                    <i class="fa-solid fa-user text-xs"></i>
+              <div class="poster-card eligibility-card rounded-2xl p-3.5 md:p-4 shadow-xs border">
+                <div class="flex items-center gap-2 mb-2">
+                  <div id="eligibilityAvatar" class="avatar-icon w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-2xs text-[10px]">
+                    <i class="fa-solid fa-user-check"></i>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <h4 class="text-[11px] font-bold uppercase tracking-wide mb-0.5 text-inherit">Eligibility Criteria</h4>
-                    <p id="displayEligibility" class="eligibility-text text-[10.5px] leading-relaxed opacity-90 whitespace-pre-line">
-                      Open for first-year full-time undergraduate students across all streams. Minimum 60% marks in 12th standard. Annual family income should be less than ₹ 15 Lakhs (priority given to under ₹ 2.5 Lakhs).
-                    </p>
-                  </div>
+                  <h4 class="text-[11px] font-bold uppercase tracking-wider text-inherit">Eligibility Criteria</h4>
+                </div>
+                <div id="displayEligibility" class="eligibility-text text-[11px] leading-relaxed opacity-95 whitespace-pre-line pl-0.5">
+                  Open for first-year full-time undergraduate students across all streams. Minimum 60% marks in 12th standard. Annual family income should be less than ₹ 15 Lakhs (priority given to under ₹ 2.5 Lakhs).
                 </div>
               </div>
 
               <!-- Scholarship Amount Card (Full-width, supports 5-6 lines & multi-tier grants) -->
-              <div class="poster-card stat-pill amount-pill rounded-2xl p-3 flex items-start gap-2.5 shadow-sm border">
-                <div class="stat-icon-wrap w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm mt-0.5">
-                  <span>₹</span>
+              <div class="poster-card stat-pill amount-pill rounded-2xl p-3.5 md:p-4 shadow-xs border">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="stat-icon-wrap w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-2xs">
+                    <span>₹</span>
+                  </div>
+                  <div class="text-[10px] font-bold uppercase opacity-85 tracking-wider">Scholarship Amount & Benefits</div>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <div class="text-[9px] font-bold uppercase opacity-80 tracking-wide mb-0.5">Scholarship Amount & Benefits</div>
-                  <div id="displayAmount" class="stat-value text-[10.5px] font-medium leading-relaxed whitespace-pre-line break-words">₹ 2,00,000</div>
-                </div>
+                <div id="displayAmount" class="stat-value text-[11px] font-medium leading-relaxed whitespace-pre-line break-words pl-0.5">₹ 2,00,000</div>
               </div>
 
             </div>

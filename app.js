@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputWebsite = document.getElementById('inputWebsite');
   const toggleLogo = document.getElementById('toggleLogo');
   const toggleQr = document.getElementById('toggleQr');
+  const btnBoldEligibility = document.getElementById('btnBoldEligibility');
+  const btnBoldAmount = document.getElementById('btnBoldAmount');
 
   // Display Elements in Canvas
   const displayBadge = document.getElementById('displayBadge');
@@ -161,12 +163,101 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   bindInput(inputDeadline, displayDeadline);
-  bindInput(inputAmount, displayAmount);
   bindInput(inputWebsite, displayWebsite);
 
-  inputEligibility.addEventListener('input', () => {
-    displayEligibility.textContent = inputEligibility.value;
-  });
+  // --- Rich Text & Bold Formatting (Markdown **text** or <b>text</b>) ---
+  function renderRichText(text) {
+    if (!text) return '';
+    let safe = String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Convert **bold** or __bold__ to strong tag
+    safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-inherit">$1</strong>');
+    safe = safe.replace(/__(.*?)__/g, '<strong class="font-extrabold text-inherit">$1</strong>');
+
+    // Also support <b> and <strong> if entered
+    safe = safe.replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '<strong class="font-extrabold text-inherit">$1</strong>');
+    safe = safe.replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/gi, '<strong class="font-extrabold text-inherit">$1</strong>');
+
+    return safe;
+  }
+
+  // Handle Ctrl+B to bold selected text in textareas
+  function setupBoldFeature(textarea, btnBold, updateFn) {
+    if (!textarea) return;
+
+    function toggleBold() {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+      const selected = val.substring(start, end);
+
+      if (selected.length > 0) {
+        // Case 1: Selection is already **something**
+        if (selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4) {
+          const unwrapped = selected.slice(2, -2);
+          textarea.value = val.substring(0, start) + unwrapped + val.substring(end);
+          textarea.selectionStart = start;
+          textarea.selectionEnd = start + unwrapped.length;
+        }
+        // Case 2: Selection has ** immediately outside
+        else if (
+          start >= 2 && end <= val.length - 2 &&
+          val.substring(start - 2, start) === '**' &&
+          val.substring(end, end + 2) === '**'
+        ) {
+          textarea.value = val.substring(0, start - 2) + selected + val.substring(end + 2);
+          textarea.selectionStart = start - 2;
+          textarea.selectionEnd = end - 2;
+        }
+        // Case 3: Normal selection -> wrap with **
+        else {
+          const wrapped = `**${selected}**`;
+          textarea.value = val.substring(0, start) + wrapped + val.substring(end);
+          textarea.selectionStart = start;
+          textarea.selectionEnd = start + wrapped.length;
+        }
+      } else {
+        // Nothing selected: insert **** and position cursor inside
+        textarea.value = val.substring(0, start) + '****' + val.substring(end);
+        textarea.selectionStart = start + 2;
+        textarea.selectionEnd = start + 2;
+      }
+
+      textarea.focus();
+      updateFn();
+    }
+
+    textarea.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleBold();
+      }
+    });
+
+    if (btnBold) {
+      btnBold.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleBold();
+      });
+    }
+  }
+
+  // Eligibility Criteria with Bold Ctrl+B
+  const updateEligibility = () => {
+    displayEligibility.innerHTML = renderRichText(inputEligibility.value);
+  };
+  inputEligibility.addEventListener('input', updateEligibility);
+  setupBoldFeature(inputEligibility, btnBoldEligibility, updateEligibility);
+
+  // Scholarship Amount with Bold Ctrl+B
+  const updateAmount = () => {
+    displayAmount.innerHTML = renderRichText(inputAmount.value);
+  };
+  inputAmount.addEventListener('input', updateAmount);
+  setupBoldFeature(inputAmount, btnBoldAmount, updateAmount);
 
   // Logo Toggle
   toggleLogo.addEventListener('change', () => {
