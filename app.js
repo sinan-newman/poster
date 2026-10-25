@@ -685,35 +685,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const quality = isJpeg ? 0.95 : 1.0;
     const bgColor = isJpeg ? getThemeBgColor() : null;
 
-    // Create an isolated export sandbox offscreen with fixed desktop width
-    // completely shielded from mobile viewport constraints or touch scrolls
-    const sandbox = document.createElement('div');
-    sandbox.style.cssText = 'position:fixed; left:-9999px; top:0; width:1200px; height:auto; z-index:-9999; opacity:0; pointer-events:none;';
+    const prevWidth = posterContainer.style.width;
+    const prevMaxWidth = posterContainer.style.maxWidth;
+    const prevHeight = posterContainer.style.height;
+    const prevTransform = posterContainer.style.transform;
+    const prevTransition = posterContainer.style.transition;
 
     const isSquare = posterContainer.classList.contains('ratio-square');
     const isStory = posterContainer.classList.contains('ratio-story');
     const canonicalWidth = isSquare ? '500px' : isStory ? '405px' : '480px';
+    const targetWidthNum = isSquare ? 500 : isStory ? 405 : 480;
 
-    const clone = posterContainer.cloneNode(true);
-    clone.id = 'posterCloneForExport';
-    clone.classList.add('exporting-canvas');
-    clone.style.width = canonicalWidth;
-    clone.style.minWidth = canonicalWidth;
-    clone.style.maxWidth = canonicalWidth;
-    clone.style.height = 'auto';
-    clone.style.transform = 'none';
-    clone.style.transition = 'none';
-    clone.style.margin = '0';
+    posterContainer.classList.add('exporting-canvas');
+    posterContainer.style.transition = 'none';
+    posterContainer.style.width = canonicalWidth;
+    posterContainer.style.minWidth = canonicalWidth;
+    posterContainer.style.maxWidth = canonicalWidth;
+    posterContainer.style.height = 'auto';
+    posterContainer.style.transform = 'none';
 
     if (window.SCHOLARISE_ASSETS) {
-      const cloneLogo = clone.querySelector('#displayLogoImg');
-      const cloneQr = clone.querySelector('#displayQrImgTop');
-      if (cloneLogo && window.SCHOLARISE_ASSETS.logoPng) cloneLogo.src = window.SCHOLARISE_ASSETS.logoPng;
-      if (cloneQr && window.SCHOLARISE_ASSETS.whatsappQrJpg) cloneQr.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
+      if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng && !displayLogoImg.src.startsWith('data:')) {
+        displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
+      }
+      if (displayQrImgTop && window.SCHOLARISE_ASSETS.whatsappQrJpg && !displayQrImgTop.src.startsWith('data:')) {
+        displayQrImgTop.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
+      }
     }
-
-    sandbox.appendChild(clone);
-    document.body.appendChild(sandbox);
 
     try {
       if (document.fonts && document.fonts.ready) {
@@ -726,10 +724,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
       await new Promise(resolve => setTimeout(resolve, 80));
 
-      // 1. Primary Engine: html2canvas on isolated clean clone
+      // 1. Primary Engine: html-to-image (Pixel-perfect browser-native SVG foreignObject capture)
+      if (window.htmlToImage) {
+        try {
+          const filter = (node) => {
+            if (!node) return false;
+            if (node.nodeType !== 1) return true;
+            if (node.classList && node.classList.contains('hidden')) return false;
+            if (node.tagName === 'IMG' && (!node.getAttribute('src') || node.getAttribute('src') === '')) return false;
+            return true;
+          };
+
+          const h2iOptions = {
+            pixelRatio: 2.5,
+            width: targetWidthNum,
+            skipFonts: true,
+            fontEmbedCSS: '',
+            cacheBust: false,
+            filter: filter,
+            backgroundColor: bgColor
+          };
+
+          if (isJpeg && window.htmlToImage.toJpeg) {
+            const dataUrl = await window.htmlToImage.toJpeg(posterContainer, { ...h2iOptions, quality: 0.95 });
+            if (dataUrl && dataUrl.length > 500) return dataUrl;
+          } else if (window.htmlToImage.toPng) {
+            const dataUrl = await window.htmlToImage.toPng(posterContainer, h2iOptions);
+            if (dataUrl && dataUrl.length > 500) return dataUrl;
+          }
+        } catch (h2iErr) {
+          console.warn('[Export] htmlToImage primary engine error, trying html2canvas fallback...', h2iErr);
+        }
+      }
+
+      // 2. Secondary Engine: html2canvas fallback
       if (window.html2canvas) {
         try {
-          const canvas = await window.html2canvas(clone, {
+          const canvas = await window.html2canvas(posterContainer, {
             scale: 2.5,
             useCORS: true,
             allowTaint: true,
@@ -741,39 +772,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return dataUrl;
           }
         } catch (h2cErr) {
-          console.warn('[Export] html2canvas error, trying htmlToImage fallback...', h2cErr);
-        }
-      }
-
-      // 2. Secondary Engine: html-to-image fallback
-      if (window.htmlToImage) {
-        const filter = (node) => {
-          if (node.classList && node.classList.contains('hidden')) return false;
-          if (node.tagName === 'IMG' && (!node.getAttribute('src') || node.getAttribute('src') === '')) return false;
-          return true;
-        };
-
-        const h2iOptions = {
-          pixelRatio: 2.5,
-          skipFonts: true,
-          fontEmbedCSS: '',
-          cacheBust: false,
-          filter: filter,
-          backgroundColor: bgColor
-        };
-
-        if (isJpeg && window.htmlToImage.toJpeg) {
-          const dataUrl = await window.htmlToImage.toJpeg(clone, { ...h2iOptions, quality: 0.95 });
-          if (dataUrl && dataUrl.length > 500) return dataUrl;
-        } else if (window.htmlToImage.toPng) {
-          const dataUrl = await window.htmlToImage.toPng(clone, h2iOptions);
-          if (dataUrl && dataUrl.length > 500) return dataUrl;
+          console.warn('[Export] html2canvas fallback error:', h2cErr);
         }
       }
 
       throw new Error('Could not generate export canvas.');
     } finally {
-      sandbox.remove();
+      posterContainer.classList.remove('exporting-canvas');
+      posterContainer.style.width = prevWidth;
+      posterContainer.style.minWidth = '';
+      posterContainer.style.maxWidth = prevMaxWidth;
+      posterContainer.style.height = prevHeight;
+      posterContainer.style.transform = prevTransform;
+      posterContainer.style.transition = prevTransition;
       exportModal.classList.add('hidden');
     }
   }

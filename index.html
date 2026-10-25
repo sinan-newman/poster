@@ -22,12 +22,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <!-- Pre-encoded Offline Brand Assets (Zero CORS / Zero permissions issues) -->
-  <script src="assets_data.js?v=2.3"></script>
+  <script src="assets_data.js?v=2.4"></script>
 
   <!-- Live ScholaRise Database -->
-  <script src="scholarships_data.js?v=2.3"></script>
+  <script src="scholarships_data.js?v=2.4"></script>
   
-  <link rel="stylesheet" href="style.css?v=2.3">
+  <link rel="stylesheet" href="style.css?v=2.4">
 </head>
 <body class="bg-slate-100 text-slate-800 font-['Inter'] min-h-screen flex flex-col">
 
@@ -497,7 +497,7 @@
                       <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c-9.1-18.4-14.3-39.1-14.3-61c0-43.9 20.7-83.1 52.9-108.1C443.2 316.8 381.7 304 312 304l-133.7 0zm397.6-4.1l-10.1-10.1c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l61.1 61.1c9.4 9.4 24.6 9.4 33.9 0l149.1-149.1c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L575.9 299.9z"/>
                     </svg>
                   </div>
-                  <h4 class="text-[11px] font-bold uppercase tracking-wider text-inherit m-0 leading-tight">Eligibility Criteria</h4>
+                  <h4 class="text-[11px] font-bold uppercase tracking-wider text-inherit m-0 leading-tight whitespace-nowrap">Eligibility Criteria</h4>
                 </div>
                 <div id="displayEligibility" class="eligibility-text text-[11px] leading-relaxed opacity-95 whitespace-pre-line pl-0.5">
                   Open for first-year full-time undergraduate students across all streams. Minimum 60% marks in 12th standard. Annual family income should be less than ₹ 15 Lakhs (priority given to under ₹ 2.5 Lakhs).
@@ -510,7 +510,7 @@
                   <div class="stat-icon-wrap w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-2xs mr-2">
                     <span>₹</span>
                   </div>
-                  <div class="text-[10px] font-bold uppercase opacity-85 tracking-wider m-0 leading-tight">Scholarship Amount & Benefits</div>
+                  <div class="text-[10px] font-bold uppercase opacity-85 tracking-wider m-0 leading-tight whitespace-nowrap">Scholarship Amount & Benefits</div>
                 </div>
                 <div id="displayAmount" class="stat-value text-[11px] font-medium leading-relaxed whitespace-pre-line break-words pl-0.5">₹ 2,00,000</div>
               </div>
@@ -523,8 +523,10 @@
               <!-- Centered Website Link Card (Just above logo) -->
               <div id="websiteCardCol" class="poster-card website-pill rounded-full px-4 py-1 flex items-center justify-center shadow-sm border max-w-[95%] text-center">
                 <div class="stat-icon-wrap w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] mr-2">
-                  <svg class="w-2.5 h-2.5 shrink-0" viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M352 256c0 22.2-1.2 43.6-3.3 64l-185.3 0c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64l185.4 0c2.2 20.4 3.3 41.8 3.3 64zm28.8-64l76.7 0c-15.8-49.9-50-91.1-94.7-113.6c11.1 24.8 19.3 54.2 23.6 86.8c-1.8 8.9-3.7 17.9-5.6 26.8zm-29.6 128c-4.3 32.6-12.5 62-23.6 86.8c44.7-22.5 78.9-63.7 94.7-113.6l-76.7 0c1.9 8.9 3.8 17.9 5.6 26.8zM256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0z"/>
+                  <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                   </svg>
                 </div>
                 <div class="min-w-0 text-center flex items-center gap-1.5">
@@ -646,6 +648,6 @@
     </button>
   </div>
 
-  <script src="app.js?v=2.3"></script>
+  <script src="app.js?v=2.4"></script>
 </body>
 </html>
