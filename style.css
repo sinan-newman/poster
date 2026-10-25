@@ -1,0 +1,658 @@
+/* Scholarship Poster Generator Styles */
+
+/* Base Canvas & Sizing (Auto-expands gracefully to support 15+ lines) */
+.poster-canvas {
+  width: 480px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box;
+}
+
+.poster-inner-content {
+  padding: 24px 24px 20px 24px;
+}
+
+/* ============================================================
+   CANVAS ASPECT RATIO ARCHITECTURE (Supports 15+ Lines)
+   ============================================================ */
+
+/* 1. 4:5 Portrait */
+.poster-canvas.ratio-portrait {
+  width: 480px;
+  min-height: 600px;
+  height: auto;
+}
+.poster-canvas.ratio-portrait .poster-title {
+  font-size: 1.45rem;
+}
+.poster-canvas.ratio-portrait .poster-graphic-container {
+  width: 95px;
+  height: 95px;
+}
+.poster-canvas.ratio-portrait #displayLogoImg {
+  height: 38px;
+}
+
+/* 2. 1:1 Square */
+.poster-canvas.ratio-square {
+  width: 500px;
+  min-height: 500px;
+  height: auto;
+}
+.poster-canvas.ratio-square .poster-inner-content {
+  padding: 18px 20px 16px 20px;
+}
+.poster-canvas.ratio-square .poster-title {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+.poster-canvas.ratio-square .poster-tagline {
+  font-size: 10px;
+  margin-top: 2px;
+}
+.poster-canvas.ratio-square .poster-graphic-container {
+  width: 78px;
+  height: 78px;
+}
+.poster-canvas.ratio-square #displayLogoImg {
+  height: 30px;
+}
+
+/* 3. 9:16 Story */
+.poster-canvas.ratio-story {
+  width: 405px;
+  min-height: 720px;
+  height: auto;
+}
+.poster-canvas.ratio-story .poster-inner-content {
+  padding: 30px 22px 24px 22px;
+}
+.poster-canvas.ratio-story .poster-title {
+  font-size: 1.55rem;
+}
+.poster-canvas.ratio-story .poster-graphic-container {
+  width: 110px;
+  height: 110px;
+}
+.poster-canvas.ratio-story #displayLogoImg {
+  height: 42px;
+}
+
+/* Unrestricted Typography for Eligibility and Amount (Supports 15+ Lines) */
+.eligibility-text,
+.stat-value,
+.amount-text {
+  font-family: 'Noto Sans Malayalam', 'Plus Jakarta Sans', sans-serif;
+  word-break: break-word;
+  white-space: pre-line;
+  line-height: 1.38;
+  overflow: visible !important;
+  display: block !important;
+  max-height: none !important;
+  -webkit-line-clamp: unset !important;
+  font-size: 10px;
+}
+
+.poster-canvas.ratio-square .eligibility-text,
+.poster-canvas.ratio-square .stat-value,
+.poster-canvas.ratio-square .amount-text {
+  font-size: 9px;
+  line-height: 1.32;
+}
+
+.poster-canvas.ratio-story .eligibility-text,
+.poster-canvas.ratio-story .stat-value,
+.poster-canvas.ratio-story .amount-text {
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.website-value {
+  word-break: break-all;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+/* Active Theme & Ratio controls styling */
+.theme-card {
+  border-color: #E2E8F0;
+  background-color: #FFFFFF;
+}
+.theme-card:hover {
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+}
+.theme-card.active {
+  border-color: #0D9488;
+  background-color: #F0FDFA;
+  box-shadow: 0 0 0 1px #0D9488;
+}
+
+.ratio-btn {
+  border-color: #E2E8F0;
+  background-color: #FFFFFF;
+  color: #64748B;
+  transition: all 0.15s ease;
+}
+.ratio-btn:hover {
+  background-color: #F8FAFC;
+  color: #334155;
+}
+.ratio-btn.active {
+  border-color: #0D9488;
+  background-color: #0D9488;
+  color: #FFFFFF;
+}
+
+.graphic-choice {
+  border-color: #E2E8F0;
+  background-color: #FFFFFF;
+  transition: all 0.15s ease;
+}
+.graphic-choice.active {
+  border-color: #0D9488;
+  background-color: #F0FDFA;
+}
+
+/* Brand Logo Wrap: Pure transparent, centered, NO added background box */
+.brand-logo-wrap {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+
+/* ============================================================
+   THEME 1: MODERN TEAL (Top-Left reference)
+   ============================================================ */
+.theme-teal {
+  background-color: #F7FAF8;
+  color: #0A2F35;
+}
+
+.theme-teal .poster-badge {
+  background-color: #007A78;
+  color: #FFFFFF;
+}
+
+.theme-teal .poster-callout {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #007A78;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.theme-teal .poster-callout::after {
+  content: "✨";
+  font-size: 11px;
+}
+
+.theme-teal .poster-title {
+  color: #0A2E44;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.theme-teal .poster-last-date-line {
+  color: #007A78;
+}
+
+.theme-teal .poster-tagline {
+  color: #486581;
+}
+
+.theme-teal .eligibility-card {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #1E293B;
+  box-shadow: 0 4px 12px rgba(0, 122, 120, 0.04);
+}
+.theme-teal #eligibilityAvatar {
+  background-color: #007A78;
+  color: #FFFFFF;
+}
+
+.theme-teal .stat-pill, 
+.theme-teal .website-pill,
+.theme-teal .top-qr-pill {
+  background-color: #E0F2F1;
+  border-color: #B2DFDB;
+  color: #004D40;
+}
+.theme-teal .stat-icon-wrap {
+  background-color: #007A78;
+  color: #FFFFFF;
+}
+
+/* Subtle Organic Wave Footer */
+.theme-teal .bg-decor-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55px;
+  background: linear-gradient(135deg, rgba(0, 122, 120, 0.12) 0%, rgba(0, 77, 64, 0.18) 100%);
+  clip-path: polygon(0 50%, 30% 35%, 70% 55%, 100% 25%, 100% 100%, 0 100%);
+  z-index: 1;
+}
+
+.theme-teal .bg-decor-top {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(0, 122, 120, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+
+/* ============================================================
+   THEME 2: LAVENDER DREAM (Top-Right reference)
+   ============================================================ */
+.theme-lavender {
+  background-color: #F7F5FC;
+  color: #261B4E;
+}
+
+.theme-lavender .poster-badge {
+  background-color: #8E74C4;
+  color: #FFFFFF;
+}
+
+.theme-lavender .poster-callout {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: #7957B8;
+  transform: rotate(-3deg);
+  line-height: 1;
+}
+
+.theme-lavender .poster-title {
+  color: #231652;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.theme-lavender .poster-last-date-line {
+  color: #7957B8;
+}
+
+.theme-lavender .poster-tagline {
+  color: #6A5D8A;
+}
+
+.theme-lavender .eligibility-card {
+  background-color: #FFFFFF;
+  border-color: #EAE4F5;
+  color: #2D234A;
+  box-shadow: 0 4px 12px rgba(142, 116, 196, 0.06);
+}
+.theme-lavender #eligibilityAvatar {
+  background-color: #8E74C4;
+  color: #FFFFFF;
+}
+
+.theme-lavender .stat-pill,
+.theme-lavender .website-pill,
+.theme-lavender .top-qr-pill {
+  background-color: #EDE8F7;
+  border-color: #DDD4F0;
+  color: #432F78;
+}
+.theme-lavender .stat-icon-wrap {
+  background-color: #8E74C4;
+  color: #FFFFFF;
+}
+
+.theme-lavender .bg-decor-bottom {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(142, 116, 196, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.theme-lavender .bg-decor-top {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, rgba(142, 116, 196, 0.12) 0%, transparent 70%);
+}
+
+
+/* ============================================================
+   THEME 3: EDITORIAL BEIGE (Bottom-Left reference)
+   ============================================================ */
+.theme-editorial {
+  background-color: #F5F3EC;
+  color: #173228;
+}
+
+.theme-editorial .poster-badge {
+  background-color: transparent;
+  color: #204A3C;
+  border: 1px solid #C4D3C9;
+  letter-spacing: 0.15em;
+  font-family: 'Playfair Display', serif;
+  font-size: 9px;
+  padding: 2px 10px;
+}
+
+.theme-editorial .poster-callout {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: #2D5848;
+}
+
+.theme-editorial .poster-title {
+  color: #0E3024;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.01em;
+}
+
+.theme-editorial .poster-last-date-line {
+  color: #173228;
+}
+
+.theme-editorial .poster-tagline {
+  color: #3B5A4E;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+}
+
+.theme-editorial .eligibility-card {
+  background-color: #FAF9F5;
+  border-color: #DFDDD3;
+  color: #1F382E;
+}
+.theme-editorial #eligibilityAvatar {
+  background-color: #1A4434;
+  color: #F5F3EC;
+}
+
+.theme-editorial .stat-pill,
+.theme-editorial .website-pill,
+.theme-editorial .top-qr-pill {
+  background-color: #E2EAE3;
+  border-color: #CAD8CD;
+  color: #133D2D;
+}
+.theme-editorial .stat-icon-wrap {
+  background-color: #184736;
+  color: #FFFFFF;
+}
+
+.theme-editorial .bg-decor-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to top, rgba(14, 48, 36, 0.05), transparent);
+}
+
+
+/* ============================================================
+   THEME 4: BOLD NAVY & YELLOW (Bottom-Right reference)
+   ============================================================ */
+.theme-navy-yellow {
+  background-color: #0B2545;
+  color: #FFFFFF;
+}
+
+.theme-navy-yellow .poster-badge {
+  background-color: #FFC72C;
+  color: #0B2545;
+  font-weight: 800;
+}
+
+.theme-navy-yellow .poster-callout {
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  color: #FFC72C;
+  font-weight: 700;
+  transform: rotate(4deg);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.theme-navy-yellow .poster-title {
+  color: #FFFFFF;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.theme-navy-yellow .poster-last-date-line {
+  color: #FFC72C;
+}
+
+.theme-navy-yellow .poster-tagline {
+  color: #CBD5E1;
+}
+
+.theme-navy-yellow .eligibility-card {
+  background-color: #FFFFFF;
+  border-color: transparent;
+  color: #0F172A;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+.theme-navy-yellow #eligibilityAvatar {
+  background-color: #FFC72C;
+  color: #0B2545;
+}
+
+.theme-navy-yellow .stat-pill.deadline-pill {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #0B2545;
+}
+.theme-navy-yellow .stat-pill.amount-pill {
+  background-color: #FFE68C;
+  border-color: #FFD54F;
+  color: #0B2545;
+}
+.theme-navy-yellow .stat-pill.amount-pill .stat-icon-wrap {
+  background-color: #0B2545;
+  color: #FFE68C;
+}
+.theme-navy-yellow .stat-pill.deadline-pill .stat-icon-wrap {
+  background-color: #0B2545;
+  color: #FFFFFF;
+}
+
+.theme-navy-yellow .website-pill,
+.theme-navy-yellow .top-qr-pill {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #0B2545;
+}
+.theme-navy-yellow .website-pill .stat-icon-wrap {
+  background-color: #0B2545;
+  color: #FFFFFF;
+}
+
+/* Bright Yellow Bottom Wave - logo sits directly on it with no box */
+.theme-navy-yellow .bg-decor-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: #FFC72C;
+  clip-path: polygon(0 35%, 40% 15%, 85% 30%, 100% 10%, 100% 100%, 0 100%);
+  z-index: 1;
+}
+
+/* Dots Matrix Pattern */
+.theme-navy-yellow .bg-decor-dots {
+  position: absolute;
+  top: 90px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  background-image: radial-gradient(#FFC72C 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  opacity: 0.6;
+}
+
+
+/* ============================================================
+   3D / VECTOR ARTWORK GRAPHICS
+   ============================================================ */
+
+/* 1. Mortarboard Cap + Books */
+.grad-cap {
+  width: 64px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.cap-diamond {
+  width: 58px;
+  height: 22px;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  transform: skewX(-25deg);
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+}
+.theme-navy-yellow .cap-diamond {
+  background: linear-gradient(135deg, #09172A 0%, #020617 100%);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.cap-skull {
+  width: 34px;
+  height: 14px;
+  background: #0F172A;
+  border-radius: 0 0 14px 14px;
+  margin-top: -5px;
+}
+
+.cap-tassel {
+  position: absolute;
+  right: 6px;
+  top: 8px;
+  width: 12px;
+  height: 20px;
+  border-left: 2px solid #F59E0B;
+  border-bottom: 3px solid #F59E0B;
+}
+
+/* Stacked Books */
+.book-stack {
+  width: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.book {
+  height: 11px;
+  border-radius: 3px 6px 6px 3px;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.12);
+  position: relative;
+}
+.book::before {
+  content: "";
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  background-color: #FEF3C7;
+  border-radius: 1px;
+}
+
+.book-top {
+  width: 58px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, #0284C7, #38BDF8);
+}
+.book-mid {
+  width: 66px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, #0F766E, #2DD4BF);
+}
+.book-bot {
+  width: 74px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, #1E40AF, #60A5FA);
+}
+
+/* Theme variations for books */
+.theme-lavender .book-top { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+.theme-lavender .book-mid { background: linear-gradient(90deg, #6366F1, #818CF8); }
+.theme-lavender .book-bot { background: linear-gradient(90deg, #4338CA, #6366F1); }
+
+.theme-editorial .book-top { background: linear-gradient(90deg, #92400E, #D97706); }
+.theme-editorial .book-mid { background: linear-gradient(90deg, #065F46, #059669); }
+.theme-editorial .book-bot { background: linear-gradient(90deg, #1E3A8A, #3B82F6); }
+
+/* 2. Diploma Roll */
+.diploma-roll {
+  width: 64px;
+  height: 26px;
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border-radius: 13px;
+  border: 1px solid #FDE68A;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  position: relative;
+  transform: rotate(-10deg);
+}
+.diploma-ribbon {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  bottom: -4px;
+  width: 10px;
+  transform: translateX(-50%);
+  background-color: #DC2626;
+  border-radius: 2px;
+}
+
+/* 3. Arch Window */
+.arch-window {
+  background: linear-gradient(to bottom, #E2DDD0 0%, #D8D2C2 100%);
+  border: 2px solid #BAAF96;
+}
+.arch-leaves {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 30px;
+  border-right: 2px solid #2D5848;
+  border-radius: 0 14px 14px 0;
+  opacity: 0.7;
+}
+
+/* Responsive Scaling for Smaller Viewports */
+@media (max-width: 640px) {
+  .poster-canvas {
+    width: 100% !important;
+    max-width: 360px !important;
+  }
+  .poster-canvas.ratio-portrait {
+    height: 480px !important;
+  }
+  .poster-canvas.ratio-square {
+    height: 380px !important;
+  }
+  .poster-canvas.ratio-story {
+    height: 600px !important;
+  }
+}

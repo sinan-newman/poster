@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScholaRise - Scholarship Poster Generator</title>
+  
+  <!-- Google Fonts (Including Noto Sans Malayalam for native rendering) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- html2canvas & jsPDF for HD exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Live ScholaRise Database -->
+  <script src="scholarships_data.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-['Inter'] min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-2.5 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <img src="assets/scholarise-logo.png" alt="ScholaRise" class="h-8 w-auto object-contain">
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Scholarship Poster Studio
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">Pro</span>
+          </h1>
+          <p class="text-[11px] text-slate-500">Official ScholaRise Generator • 4 Themes • WhatsApp QR Integration</p>
+        </div>
+      </div>
+
+      <!-- Top Search & Quick Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Top Searchable Combobox (Sorted A to Z) -->
+        <div class="relative min-w-[260px] md:min-w-[340px]" id="topSearchWrapper">
+          <div class="relative flex items-center">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-teal-600 text-xs">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="topSearchInput" placeholder="🔍 Search scholarships (A to Z)..." autocomplete="off" class="w-full text-xs font-semibold pl-8 pr-7 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-300 focus:border-teal-500 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-xs cursor-text">
+            <button id="btnClearTopSearch" type="button" class="hidden absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-circle-xmark text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Instant Search Dropdown (Sorted A-Z) -->
+          <div id="topSearchResults" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto z-50 divide-y divide-slate-100">
+            <!-- Rendered dynamically by app.js -->
+          </div>
+        </div>
+
+        <!-- Live Database Browse Button -->
+        <button id="btnBrowseDb" title="Open complete catalog view" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold px-2.5 py-2 rounded-lg transition active:scale-95">
+          <i class="fa-solid fa-database text-emerald-600"></i>
+          <span>Catalog (108)</span>
+        </button>
+
+        <button id="btnExportPng" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-download"></i>
+          <span>Download PNG</span>
+        </button>
+
+        <button id="btnExportPdf" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>PDF</span>
+        </button>
+
+        <button id="btnCopyImage" title="Copy poster to clipboard" class="flex items-center justify-center w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition active:scale-95">
+          <i class="fa-solid fa-copy"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: Editor Form (5 cols) -->
+    <div class="lg:col-span-5 space-y-5">
+      
+      <!-- 1. Theme & Canvas Ratio Selector -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+          1. Select Design Theme
+        </label>
+        <div class="grid grid-cols-2 gap-3" id="themeSelector">
+          
+          <!-- Theme 1: Modern Teal -->
+          <button type="button" data-theme="teal" class="theme-card active text-left p-3 rounded-xl border-2 transition flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#E0F2F1] border border-teal-300 flex items-center justify-center text-teal-800 font-bold text-xs">
+              Teal
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Modern Teal</div>
+              <div class="text-[11px] text-slate-500">Clean & Professional</div>
+            </div>
+          </button>
+
+          <!-- Theme 2: Lavender Dream -->
+          <button type="button" data-theme="lavender" class="theme-card text-left p-3 rounded-xl border-2 transition flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#ECE6F6] border border-purple-300 flex items-center justify-center text-purple-800 font-bold text-xs">
+              Lila
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Lavender Dream</div>
+              <div class="text-[11px] text-slate-500">Pastel & Uplifting</div>
+            </div>
+          </button>
+
+          <!-- Theme 3: Editorial Beige -->
+          <button type="button" data-theme="editorial" class="theme-card text-left p-3 rounded-xl border-2 transition flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#F5F3ED] border border-[#2D5A46] flex items-center justify-center text-[#2D5A46] font-serif font-bold text-xs">
+              Serif
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Editorial Beige</div>
+              <div class="text-[11px] text-slate-500">Classic & Prestigious</div>
+            </div>
+          </button>
+
+          <!-- Theme 4: Bold Contrast -->
+          <button type="button" data-theme="navy-yellow" class="theme-card text-left p-3 rounded-xl border-2 transition flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#0A2540] border border-amber-400 flex items-center justify-center text-amber-400 font-bold text-xs">
+              Navy
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Bold Navy</div>
+              <div class="text-[11px] text-slate-500">High Contrast Energy</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Canvas Aspect Ratio Switcher -->
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-600">Poster Canvas Ratio:</span>
+          <div class="flex gap-1.5" id="ratioSelector">
+            <button type="button" data-ratio="portrait" class="ratio-btn active px-2.5 py-1 text-xs rounded-md font-medium border">
+              4:5 Portrait
+            </button>
+            <button type="button" data-ratio="square" class="ratio-btn px-2.5 py-1 text-xs rounded-md font-medium border">
+              1:1 Square
+            </button>
+            <button type="button" data-ratio="story" class="ratio-btn px-2.5 py-1 text-xs rounded-md font-medium border">
+              9:16 Story
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Content Editor Form -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500">
+            2. Poster Information
+          </label>
+          <button id="btnReset" type="button" class="text-[11px] text-slate-400 hover:text-rose-600 transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Fields
+          </button>
+        </div>
+
+        <!-- Top Badge & WhatsApp QR CTA -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Badge Tag</label>
+            <div class="relative">
+              <select id="inputBadge" class="w-full text-xs font-semibold px-3 py-2 pr-7 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer appearance-none shadow-xs">
+                <option value="NEW SCHOLARSHIP">🔥 New Scholarship</option>
+                <option value="SCHOLARSHIP UPDATE" selected>📢 Scholarship Update</option>
+                <option value="CLOSES SOON">⏳ Closes Soon</option>
+                <option value="DATE EXTENDED">📅 Date Extended</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Top WhatsApp QR Label</label>
+            <input type="text" id="inputQrLabel" value="Scan to Join" placeholder="e.g. Scan to Join" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+          </div>
+        </div>
+
+        <!-- Scholarship Name -->
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Scholarship Title</label>
+          <input type="text" id="inputTitle" value="Reliance Foundation Undergraduate Scholarship" class="w-full text-sm font-semibold px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+
+        <!-- Tagline / Subtitle (Blank by default) -->
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Sub-tagline / Motto (Optional)</label>
+          <input type="text" id="inputTagline" value="" placeholder="Leave blank or enter custom subtitle (e.g. Apply Now)" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+
+        <!-- Eligibility Criteria (Supports 15+ Lines) -->
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
+            <span>Eligibility Criteria (From Full Description)</span>
+            <span class="text-[10px] text-teal-600 font-semibold"><i class="fa-solid fa-check mr-1"></i>Supports 15+ Lines</span>
+          </label>
+          <textarea id="inputEligibility" rows="8" class="w-full text-xs p-3 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed"></textarea>
+        </div>
+
+        <!-- Deadline & Amount (Supports 15+ Lines) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Last Date (Deadline)</label>
+            <input type="text" id="inputDeadline" value="23 November 2026" placeholder="e.g. 23 November 2026" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
+              <span>Scholarship Amount</span>
+              <span class="text-[10px] text-teal-600 font-medium">Supports 15+ lines</span>
+            </label>
+            <textarea id="inputAmount" rows="6" class="w-full text-xs px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y font-normal leading-relaxed" placeholder="Enter amount or multi-line fee breakdown"></textarea>
+          </div>
+        </div>
+
+        <!-- Official Website -->
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Official Website Link</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-globe"></i>
+            </span>
+            <input type="text" id="inputWebsite" value="scholarships.reliancefoundation.org" class="w-full text-xs pl-8 pr-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+          </div>
+        </div>
+
+        <!-- Graphic / Illustration Picker -->
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Graphic Artwork</label>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" data-graphic="books-cap" class="graphic-choice active border rounded-lg p-2 text-center text-xs hover:bg-slate-50">
+              <i class="fa-solid fa-graduation-cap text-base text-teal-600 block mb-1"></i>
+              <span class="text-[10px] block leading-tight font-medium">Grad Cap & Stack</span>
+            </button>
+            <button type="button" data-graphic="diploma" class="graphic-choice border rounded-lg p-2 text-center text-xs hover:bg-slate-50">
+              <i class="fa-solid fa-scroll text-base text-amber-500 block mb-1"></i>
+              <span class="text-[10px] block leading-tight font-medium">Diploma & Ribbon</span>
+            </button>
+            <button type="button" data-graphic="library-arch" class="graphic-choice border rounded-lg p-2 text-center text-xs hover:bg-slate-50">
+              <i class="fa-solid fa-book-open-reader text-base text-emerald-700 block mb-1"></i>
+              <span class="text-[10px] block leading-tight font-medium">Classic Arch</span>
+            </button>
+            <label class="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-lg p-2 text-center text-xs cursor-pointer flex flex-col items-center justify-center transition">
+              <i class="fa-solid fa-cloud-arrow-up text-slate-400 mb-1"></i>
+              <span class="text-[10px] text-slate-600 font-medium">Upload Pic</span>
+              <input type="file" id="customImageInput" accept="image/*" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- Official ScholaRise Logo & WhatsApp QR Settings -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">
+            3. Branding & WhatsApp Channel QR
+          </label>
+          
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+            <!-- ScholaRise Logo Control -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <img src="assets/scholarise-logo.png" alt="Logo preview" class="w-12 h-6 object-contain">
+                <div>
+                  <div class="text-xs font-semibold text-slate-800">ScholaRise Logo (Transparent)</div>
+                  <div class="text-[10px] text-slate-500">Centered at bottom without box</div>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleLogo" checked class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+              </label>
+            </div>
+
+            <!-- WhatsApp QR Code Control -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+              <div class="flex items-center gap-2.5">
+                <img src="assets/whatsapp-qr.jpg" alt="WhatsApp QR" class="w-8 h-8 object-contain rounded border border-slate-200">
+                <div>
+                  <div class="text-xs font-semibold text-slate-800">WhatsApp Channel QR</div>
+                  <div class="text-[10px] text-slate-500">Positioned at top right</div>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleQr" checked class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Live Canvas Preview (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col items-center">
+      
+      <!-- Preview Header Controls -->
+      <div class="w-full max-w-[500px] flex items-center justify-between mb-3 text-xs text-slate-500 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-medium text-slate-700">Live Poster Preview</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="canvasDimLabel" class="bg-white px-2.5 py-1 rounded-md border text-slate-600 font-mono text-[11px]">
+            1080 × 1350 px (4:5)
+          </span>
+        </div>
+      </div>
+
+      <!-- Scaled Poster Container -->
+      <div class="poster-preview-wrapper flex justify-center items-start w-full overflow-visible p-2">
+        <div id="posterContainer" class="poster-canvas theme-teal ratio-portrait shadow-2xl relative select-none">
+          
+          <!-- Decorative Background Elements (Theme Specific) -->
+          <div class="theme-bg-elements absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="bg-decor-top"></div>
+            <div class="bg-decor-bottom"></div>
+            <div class="bg-decor-dots"></div>
+          </div>
+
+          <!-- Poster Content Layout: Flex container engineered so nothing gets clipped -->
+          <div class="poster-inner-content relative z-10 h-full flex flex-col justify-between">
+
+            <!-- Top Row: Badge (Left) + WhatsApp QR Pill (Right, replacing callout) -->
+            <div class="poster-header-section">
+              <div class="flex items-center justify-between gap-2">
+                <!-- Badge Pill -->
+                <div id="posterBadgePill" class="poster-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold tracking-wide uppercase shadow-sm">
+                  <i class="fa-solid fa-bullhorn text-[10px]"></i>
+                  <span id="displayBadge">SCHOLARSHIP UPDATE</span>
+                </div>
+
+                <!-- Top WhatsApp Channel QR Badge (Replacing callout notes) -->
+                <div id="topQrContainer" class="top-qr-pill flex items-center gap-2 py-1 px-2.5 rounded-xl shadow-sm border transition">
+                  <div class="text-right leading-none">
+                    <div class="flex items-center justify-end gap-1 text-[8px] font-extrabold uppercase tracking-wider text-emerald-600">
+                      <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                      <span>WhatsApp</span>
+                    </div>
+                    <div id="displayQrLabelTop" class="text-[9px] font-extrabold mt-0.5 tracking-tight">
+                      Scan to Join
+                    </div>
+                  </div>
+                  <div class="relative bg-white rounded-md p-0.5 border border-slate-200/80 flex-shrink-0 shadow-xs">
+                    <img id="displayQrImgTop" src="assets/whatsapp-qr.jpg" alt="WhatsApp QR" class="w-7 h-7 object-contain rounded">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Header Section: Title, Last Date (Unboxed), Tagline & Floating Graphic -->
+              <div class="mt-2 flex items-start justify-between gap-3">
+                
+                <!-- Title, Last Date, Tagline -->
+                <div class="flex-1 min-w-0">
+                  <h2 id="displayTitle" class="poster-title font-extrabold leading-tight tracking-tight">
+                    Reliance Foundation Undergraduate Scholarship
+                  </h2>
+                  
+                  <!-- Unboxed Last Date Line just below Scholarship Name -->
+                  <div class="poster-last-date-line inline-flex items-center gap-1.5 mt-1 font-bold">
+                    <i class="fa-regular fa-calendar-days text-[11px] opacity-85"></i>
+                    <span class="opacity-80 font-semibold text-[10.5px]">Last Date:</span>
+                    <span id="displayDeadline" class="font-extrabold tracking-tight">23 November 2026</span>
+                  </div>
+
+                  <p id="displayTagline" class="poster-tagline text-xs font-semibold mt-1 opacity-90 hidden"></p>
+                </div>
+
+                <!-- Graphic Artwork Container -->
+                <div class="poster-graphic-container flex-shrink-0 relative flex items-center justify-center">
+                  
+                  <!-- Graphic 1: Grad Cap with Book Stack -->
+                  <div id="graphicBooksCap" class="graphic-item w-full h-full flex items-center justify-center">
+                    <div class="relative flex flex-col items-center justify-center">
+                      <!-- 3D Mortarboard Cap -->
+                      <div class="grad-cap relative z-20">
+                        <div class="cap-diamond"></div>
+                        <div class="cap-skull"></div>
+                        <div class="cap-tassel"></div>
+                      </div>
+                      <!-- Stacked 3D Books -->
+                      <div class="book-stack relative z-10 -mt-2">
+                        <div class="book book-top"></div>
+                        <div class="book book-mid"></div>
+                        <div class="book book-bot"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Graphic 2: Diploma Roll -->
+                  <div id="graphicDiploma" class="graphic-item hidden w-full h-full flex items-center justify-center">
+                    <div class="relative flex items-center justify-center">
+                      <div class="diploma-roll">
+                        <div class="diploma-ribbon"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Graphic 3: Classic Arch Window -->
+                  <div id="graphicArch" class="graphic-item hidden w-full h-full flex items-center justify-center">
+                    <div class="arch-window relative w-20 h-24 rounded-t-full overflow-hidden flex flex-col items-center justify-end p-1.5">
+                      <div class="arch-leaves"></div>
+                      <div class="book book-mid w-16"></div>
+                      <div class="book book-bot w-16"></div>
+                    </div>
+                  </div>
+
+                  <!-- Graphic 4: Custom Uploaded Image -->
+                  <div id="graphicCustom" class="graphic-item hidden w-full h-full flex items-center justify-center">
+                    <img id="customImagePreview" src="" alt="Custom graphic" class="w-full h-full object-contain rounded-xl shadow-md">
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Middle Section: Eligibility Card & Full-Width Multi-Line Amount Card -->
+            <div class="poster-middle-section space-y-2.5 my-auto">
+              
+              <!-- Eligibility Card -->
+              <div class="poster-card eligibility-card rounded-2xl p-3 shadow-sm border">
+                <div class="flex items-start gap-2.5">
+                  <div id="eligibilityAvatar" class="avatar-icon w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+                    <i class="fa-solid fa-user text-xs"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-[11px] font-bold uppercase tracking-wide mb-0.5 text-inherit">Eligibility Criteria</h4>
+                    <p id="displayEligibility" class="eligibility-text text-[10.5px] leading-relaxed opacity-90 whitespace-pre-line">
+                      Open for first-year full-time undergraduate students across all streams. Minimum 60% marks in 12th standard. Annual family income should be less than ₹ 15 Lakhs (priority given to under ₹ 2.5 Lakhs).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scholarship Amount Card (Full-width, supports 5-6 lines & multi-tier grants) -->
+              <div class="poster-card stat-pill amount-pill rounded-2xl p-3 flex items-start gap-2.5 shadow-sm border">
+                <div class="stat-icon-wrap w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm mt-0.5">
+                  <span>₹</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-[9px] font-bold uppercase opacity-80 tracking-wide mb-0.5">Scholarship Amount & Benefits</div>
+                  <div id="displayAmount" class="stat-value text-[10.5px] font-medium leading-relaxed whitespace-pre-line break-words">₹ 2,00,000</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Section: Official Website Card (Centered Above Logo) + Centered ScholaRise Logo -->
+            <div class="poster-footer-wrap relative pt-1 flex flex-col items-center justify-center gap-1.5">
+              
+              <!-- Centered Website Link Card (Just above logo) -->
+              <div id="websiteCardCol" class="poster-card website-pill rounded-full px-4 py-1 flex items-center justify-center gap-2 shadow-sm border max-w-[95%] text-center">
+                <div class="stat-icon-wrap w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px]">
+                  <i class="fa-solid fa-globe"></i>
+                </div>
+                <div class="min-w-0 text-center flex items-center gap-1.5">
+                  <span class="text-[8.5px] font-semibold uppercase opacity-75 leading-none">Official Website:</span>
+                  <span id="displayWebsite" class="website-value text-[10px] font-bold tracking-tight break-all leading-none">scholarships.reliancefoundation.org</span>
+                </div>
+              </div>
+
+              <!-- Official ScholaRise Logo (Centered at bottom, NO separate background box) -->
+              <div id="brandLogoContainer" class="brand-logo-wrap flex items-center justify-center z-10 pt-0.5">
+                <img id="displayLogoImg" src="assets/scholarise-logo.png" alt="ScholaRise - The Gateway to Scholarships" class="h-9 w-auto object-contain">
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Export Status & Tips -->
+      <div class="mt-4 text-center">
+        <p class="text-xs text-slate-500">
+          💡 <span class="font-medium">Direct Placement:</span> Logo is placed transparently at the bottom center with zero box background, exactly per your official brand asset.
+        </p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Browse Live ScholaRise Database Modal -->
+  <div id="browseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
+      
+      <!-- Modal Header -->
+      <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              ScholaRise Live Database
+              <span id="scholarshipCountBadge" class="bg-teal-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">99 Available</span>
+            </h3>
+            <p class="text-[11px] text-slate-500">Click "Generate Poster" on any scholarship to load its full details immediately.</p>
+          </div>
+        </div>
+        <button id="btnCloseBrowseModal" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="p-3 bg-white border-b border-slate-200 flex flex-wrap gap-2 items-center">
+        <div class="relative flex-1 min-w-[200px]">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="dbSearchInput" placeholder="Search by name, eligibility, amount..." class="w-full text-xs pl-8 pr-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <select id="dbCategoryFilter" class="text-xs py-2 px-3 border border-slate-300 rounded-lg text-slate-700 focus:outline-none">
+          <option value="all">All Categories</option>
+          <option value="GOVERNMENT">Government</option>
+          <option value="PRIVATE">Private / Corporate</option>
+          <option value="FELLOWSHIP">Fellowship / PhD</option>
+        </select>
+      </div>
+
+      <!-- Scrollable Scholarship Cards List -->
+      <div id="dbScholarshipList" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Exporting Loader Modal -->
+  <div id="exportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+      <div class="w-12 h-12 mx-auto rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-xl mb-3 animate-spin">
+        <i class="fa-solid fa-circle-notch"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-900">Rendering High-Res Poster...</h3>
+      <p class="text-xs text-slate-500 mt-1">Generating pixel-perfect graphic assets, logo, and QR code.</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
