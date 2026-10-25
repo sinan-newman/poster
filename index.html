@@ -31,24 +31,41 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-['Inter'] min-h-screen flex flex-col">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-2.5 shadow-sm">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center space-x-3">
-        <img src="assets/scholarise-logo.png" alt="ScholaRise" class="h-8 w-auto object-contain">
-        <div>
-          <h1 class="text-base font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            Scholarship Poster Studio
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">Pro</span>
-          </h1>
-          <p class="text-[11px] text-slate-500">Official ScholaRise Generator • 4 Themes • WhatsApp QR Integration</p>
+  <!-- Top Navigation Header (Fully Responsive on Mobile & Desktop) -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-3 md:px-4 py-2.5 shadow-xs">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5">
+      
+      <!-- Top Row: Logo & Brand + Mobile Quick Action Buttons -->
+      <div class="flex items-center justify-between gap-2 w-full lg:w-auto">
+        <div class="flex items-center space-x-2.5">
+          <img src="assets/scholarise-logo.png" alt="ScholaRise" class="h-7 sm:h-8 w-auto object-contain">
+          <div>
+            <h1 class="text-xs sm:text-base font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+              <span>Poster Studio</span>
+              <span class="text-[9px] sm:text-xs font-semibold px-1.5 py-0.2 rounded-full bg-teal-50 text-teal-700 border border-teal-200">Pro</span>
+            </h1>
+            <p class="hidden sm:block text-[11px] text-slate-500">Official ScholaRise Generator • 4 Themes • WhatsApp QR</p>
+          </div>
+        </div>
+
+        <!-- Mobile Header Action Buttons (Visible only on mobile/tablet) -->
+        <div class="flex lg:hidden items-center gap-1.5">
+          <button type="button" id="btnBrowseDbMobileTop" title="Open complete catalog view" class="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold px-2 py-1.5 rounded-lg transition active:scale-95">
+            <i class="fa-solid fa-database text-emerald-600 text-[10px]"></i>
+            <span class="text-[11px]">Catalog</span>
+          </button>
+          <button type="button" id="btnExportPngMobileTop" class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-download text-[11px]"></i>
+            <span>Download</span>
+          </button>
         </div>
       </div>
 
-      <!-- Top Search & Quick Action Buttons -->
-      <div class="flex items-center gap-2">
-        <!-- Top Searchable Combobox (Sorted A to Z) -->
-        <div class="relative min-w-[260px] md:min-w-[340px]" id="topSearchWrapper">
+      <!-- Search & Desktop Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+        
+        <!-- Searchable Combobox (Full width on mobile, auto width on desktop) -->
+        <div class="relative w-full sm:min-w-[260px] lg:min-w-[320px]" id="topSearchWrapper">
           <div class="relative flex items-center">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-teal-600 text-xs">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -65,31 +82,35 @@
           </div>
         </div>
 
-        <!-- Live Database Browse Button -->
-        <button id="btnBrowseDb" title="Open complete catalog view" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold px-2.5 py-2 rounded-lg transition active:scale-95">
-          <i class="fa-solid fa-database text-emerald-600"></i>
-          <span>Catalog (108)</span>
-        </button>
+        <!-- Action Buttons (Desktop & Tablet flex layout) -->
+        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap justify-end">
+          <button id="btnBrowseDb" title="Open complete catalog view" class="hidden lg:flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold px-2.5 py-2 rounded-lg transition active:scale-95">
+            <i class="fa-solid fa-database text-emerald-600"></i>
+            <span>Catalog (108)</span>
+          </button>
 
-        <button id="btnExportPng" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
-          <i class="fa-solid fa-download"></i>
-          <span>Download PNG</span>
-        </button>
+          <button id="btnExportPng" class="hidden lg:flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-download"></i>
+            <span>Download PNG</span>
+          </button>
 
-        <button id="btnExportPdf" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
-          <i class="fa-solid fa-file-pdf"></i>
-          <span>PDF</span>
-        </button>
+          <button id="btnExportPdf" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition active:scale-95">
+            <i class="fa-solid fa-file-pdf text-rose-400"></i>
+            <span>PDF</span>
+          </button>
 
-        <button id="btnCopyImage" title="Copy poster to clipboard" class="flex items-center justify-center w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition active:scale-95">
-          <i class="fa-solid fa-copy"></i>
-        </button>
+          <button id="btnCopyImage" title="Copy poster to clipboard" class="flex items-center justify-center w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition active:scale-95 flex-shrink-0 border border-slate-200">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+
       </div>
+
     </div>
   </header>
 
-  <!-- Main Workspace -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Main Workspace (pb-24 on mobile so sticky bottom action bar never blocks content) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 pb-24 lg:pb-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
     <!-- LEFT COLUMN: Editor Form (5 cols) -->
     <div class="lg:col-span-5 space-y-5">
@@ -572,6 +593,32 @@
       <h3 class="text-base font-bold text-slate-900">Rendering High-Res Poster...</h3>
       <p class="text-xs text-slate-500 mt-1">Generating pixel-perfect graphic assets, logo, and QR code.</p>
     </div>
+  </div>
+
+  <!-- Sticky Floating Bottom Action Bar for Mobile Viewports (Always Visible & Accessible) -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-2xl flex lg:hidden items-center justify-between gap-2">
+    <!-- Quick Catalog button -->
+    <button type="button" id="btnBrowseDbMobileBottom" title="Open Catalog (108)" class="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 font-bold px-3 py-2.5 rounded-xl transition active:scale-95 text-xs flex-shrink-0">
+      <i class="fa-solid fa-database text-emerald-600 text-xs"></i>
+      <span class="text-xs">Catalog</span>
+    </button>
+
+    <!-- Prominent Download PNG button -->
+    <button type="button" id="btnExportPngMobileBottom" class="flex-1 flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-extrabold py-2.5 px-3 rounded-xl shadow-md transition active:scale-95 text-xs">
+      <i class="fa-solid fa-download text-sm"></i>
+      <span>Download PNG</span>
+    </button>
+
+    <!-- PDF button -->
+    <button type="button" id="btnExportPdfMobileBottom" title="Export PDF" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition active:scale-95 text-xs flex-shrink-0">
+      <i class="fa-solid fa-file-pdf text-xs text-rose-400"></i>
+      <span>PDF</span>
+    </button>
+
+    <!-- Quick Scroll to Live Canvas -->
+    <button type="button" id="btnJumpPreviewMobile" title="Scroll down to live preview" class="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition active:scale-95 flex-shrink-0 border border-slate-200">
+      <i class="fa-solid fa-eye text-xs"></i>
+    </button>
   </div>
 
   <script src="app.js"></script>

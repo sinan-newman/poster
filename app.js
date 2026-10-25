@@ -846,6 +846,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // --- Mobile Action Buttons Binding ---
+  const btnExportPngMobileTop = document.getElementById('btnExportPngMobileTop');
+  const btnBrowseDbMobileTop = document.getElementById('btnBrowseDbMobileTop');
+  const btnExportPngMobileBottom = document.getElementById('btnExportPngMobileBottom');
+  const btnExportPdfMobileBottom = document.getElementById('btnExportPdfMobileBottom');
+  const btnBrowseDbMobileBottom = document.getElementById('btnBrowseDbMobileBottom');
+  const btnJumpPreviewMobile = document.getElementById('btnJumpPreviewMobile');
+
+  if (btnExportPngMobileTop) btnExportPngMobileTop.addEventListener('click', () => btnExportPng.click());
+  if (btnBrowseDbMobileTop) btnBrowseDbMobileTop.addEventListener('click', () => btnBrowseDb.click());
+  if (btnExportPngMobileBottom) btnExportPngMobileBottom.addEventListener('click', () => btnExportPng.click());
+  if (btnExportPdfMobileBottom) btnExportPdfMobileBottom.addEventListener('click', () => btnExportPdf.click());
+  if (btnBrowseDbMobileBottom) btnBrowseDbMobileBottom.addEventListener('click', () => btnBrowseDb.click());
+  if (btnJumpPreviewMobile) {
+    btnJumpPreviewMobile.addEventListener('click', () => {
+      posterContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
   // Initialize
   renderModalList(liveList);
   if (liveList.length > 0) {
