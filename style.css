@@ -713,9 +713,17 @@
   line-height: 1.2;
 }
 .poster-badge {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+.poster-badge * {
+  white-space: nowrap !important;
+}
+#displayBadge {
+  white-space: nowrap !important;
 }
 .top-qr-pill {
   display: flex;
