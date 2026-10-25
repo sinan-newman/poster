@@ -29,6 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const displayAmount = document.getElementById('displayAmount');
   const displayWebsite = document.getElementById('displayWebsite');
   const brandLogoContainer = document.getElementById('brandLogoContainer');
+  const displayLogoImg = document.getElementById('displayLogoImg');
+  const displayQrImgTop = document.getElementById('displayQrImgTop');
+
+  // Pre-load offline Base64 brand assets to prevent CORS/permission blocks
+  if (window.SCHOLARISE_ASSETS) {
+    if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng) {
+      displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
+    }
+    if (displayQrImgTop && window.SCHOLARISE_ASSETS.whatsappQrJpg) {
+      displayQrImgTop.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
+    }
+  }
 
   // Top Search Combobox (A to Z)
   const topSearchWrapper = document.getElementById('topSearchWrapper');
@@ -570,40 +582,88 @@ document.addEventListener('DOMContentLoaded', () => {
     exportModal.classList.remove('hidden');
 
     try {
-      // Allow custom fonts to settle
+      // 1. Ensure custom fonts are loaded
       if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
+        try {
+          await document.fonts.ready;
+        } catch (fontErr) {
+          console.warn('[Export] Font ready wait skipped:', fontErr);
+        }
       }
 
-      // 1. Primary: html-to-image (uses native browser rendering engine - 100% identical to preview)
-      if (window.htmlToImage && window.htmlToImage.toPng) {
-        const dataUrl = await window.htmlToImage.toPng(posterContainer, {
+      // Small tick to ensure DOM is settled
+      await new Promise(resolve => setTimeout(resolve, 80));
+
+      const posterNode = posterContainer;
+
+      // Ensure inline base64 assets are active to prevent any CORS/tainted-canvas blocks
+      if (window.SCHOLARISE_ASSETS) {
+        if (displayLogoImg && window.SCHOLARISE_ASSETS.logoPng && !displayLogoImg.src.startsWith('data:')) {
+          displayLogoImg.src = window.SCHOLARISE_ASSETS.logoPng;
+        }
+        if (displayQrImgTop && window.SCHOLARISE_ASSETS.whatsappQrJpg && !displayQrImgTop.src.startsWith('data:')) {
+          displayQrImgTop.src = window.SCHOLARISE_ASSETS.whatsappQrJpg;
+        }
+      }
+
+      // 2. Primary Engine: html-to-image (Uses native browser foreignObject - 100% identical to preview)
+      if (window.htmlToImage) {
+        const h2iOptions = {
           pixelRatio: 2.5,
-          cacheBust: true,
+          skipFonts: true,      // Bypass cross-origin CSS rule reading to prevent DOMSecurityError
+          fontEmbedCSS: '',      // Do not attempt to download/embed external Google font files
+          cacheBust: false,      // Prevent unnecessary network fetch requests on base64 assets
           backgroundColor: null,
           style: {
             margin: '0',
             transform: 'none'
           }
-        });
-        return dataUrl;
+        };
+
+        if (window.htmlToImage.toPng) {
+          try {
+            const dataUrl = await window.htmlToImage.toPng(posterNode, h2iOptions);
+            if (dataUrl && dataUrl.length > 500) {
+              return dataUrl;
+            }
+          } catch (h2iPngErr) {
+            console.warn('[Export] htmlToImage.toPng encountered an issue, trying toCanvas...', h2iPngErr);
+          }
+        }
+
+        if (window.htmlToImage.toCanvas) {
+          try {
+            const canvas = await window.htmlToImage.toCanvas(posterNode, h2iOptions);
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            if (dataUrl && dataUrl.length > 500) {
+              return dataUrl;
+            }
+          } catch (h2iCanvasErr) {
+            console.warn('[Export] htmlToImage.toCanvas failed, falling back to html2canvas...', h2iCanvasErr);
+          }
+        }
       }
 
-      // 2. Fallback: html2canvas with explicit dimensions and no scroll offset
-      const canvas = await html2canvas(posterContainer, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        width: posterContainer.offsetWidth,
-        height: posterContainer.offsetHeight,
-        backgroundColor: null,
-        logging: false
-      });
-      return canvas.toDataURL('image/png', 1.0);
+      // 3. Fallback Engine: html2canvas with explicit dimensions and no scroll offset
+      if (window.html2canvas) {
+        console.log('[Export] Using html2canvas fallback renderer...');
+        const canvas = await window.html2canvas(posterNode, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: true,
+          scrollX: 0,
+          scrollY: 0,
+          x: 0,
+          y: 0,
+          width: posterNode.offsetWidth,
+          height: posterNode.offsetHeight,
+          backgroundColor: null,
+          logging: false
+        });
+        return canvas.toDataURL('image/png', 1.0);
+      }
+
+      throw new Error('No supported export library available in this environment.');
     } finally {
       exportModal.classList.add('hidden');
     }
@@ -622,8 +682,8 @@ document.addEventListener('DOMContentLoaded', () => {
       link.click();
       document.body.removeChild(link);
     } catch (err) {
-      alert('Error generating image export. Please check browser permissions.');
-      console.error(err);
+      console.error('[Export PNG Error]', err);
+      alert('Error generating PNG export: ' + (err.message || 'Please check browser settings.'));
     }
   });
 
@@ -634,7 +694,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const img = new Image();
       img.src = dataUrl;
-      await new Promise(resolve => { img.onload = resolve; });
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
@@ -646,8 +709,8 @@ document.addEventListener('DOMContentLoaded', () => {
       pdf.addImage(dataUrl, 'PNG', 0, 0, img.width / 2.5, img.height / 2.5);
       pdf.save(`Scholarship-${(inputTitle.value || 'Poster').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.pdf`);
     } catch (err) {
-      alert('Error creating PDF export.');
-      console.error(err);
+      console.error('[Export PDF Error]', err);
+      alert('Error creating PDF export: ' + (err.message || 'Please check browser settings.'));
     }
   });
 
@@ -668,8 +731,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCopyImage.innerHTML = originalIcon;
       }, 2000);
     } catch (err) {
-      alert('Copying to clipboard is not supported in this browser environment. You can use "Download PNG" instead!');
-      console.error(err);
+      console.warn('Clipboard write warning:', err);
+      alert('Direct clipboard copy is not permitted by your browser security. You can use "Download PNG" instead!');
     }
   });
 
