@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return str;
     }
 
+    // 1. If ISO date or YYYY-MM-DD
     const isoMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (isoMatch) {
       const [, y, m, d] = isoMatch;
@@ -83,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return `${parseInt(d, 10)} ${monthName} ${y}`;
     }
 
+    // 2. If DD MMM YYYY (e.g. 23 NOV 2026)
     const dmmmyMatch = str.match(/(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})/);
     if (dmmmyMatch) {
       const [, d, monStr, y] = dmmmyMatch;
@@ -96,6 +98,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return str;
+  }
+
+  // Helper to convert HTML into clean multi-line text with bullets
+  function cleanHtmlText(htmlStr) {
+    if (!htmlStr) return '';
+    const str = String(htmlStr).trim();
+    if (!str.includes('<') && !str.includes('>')) return str;
+
+    const div = document.createElement('div');
+    div.innerHTML = str;
+
+    div.querySelectorAll('li').forEach(li => {
+      li.prepend(document.createTextNode('• '));
+      li.append(document.createTextNode('\n'));
+    });
+
+    div.querySelectorAll('p, br, div, h1, h2, h3, h4').forEach(el => {
+      el.append(document.createTextNode('\n'));
+    });
+
+    const rawText = div.innerText || div.textContent || '';
+    const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+    return lines.join('\n');
   }
 
   // --- Real-Time Input Binding ---
@@ -112,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   bindInput(inputQrLabel, displayQrLabelTop);
   bindInput(inputTitle, displayTitle);
-  
-  // Tagline binding (hides element when blank to keep layout tight)
+
+  // Sub-tagline binding (hides element when blank to keep layout tight)
   inputTagline.addEventListener('input', () => {
     displayTagline.textContent = inputTagline.value;
     if (!inputTagline.value.trim()) {
@@ -270,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputEligibility.value = item.eligibility || 'Check official guidelines for complete eligibility.';
     displayEligibility.textContent = inputEligibility.value;
 
-    // Default sub-tagline: Blank by default
+    // Sub-tagline: Blank by default
     inputTagline.value = '';
     displayTagline.textContent = '';
     displayTagline.classList.add('hidden');
@@ -282,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Alphabetical Scholarship Database ---
   const rawList = window.SCHOLARISE_LIVE_DATA || [];
-  // Ensure strict alphabetical sorting A to Z
   const liveList = [...rawList].sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 
   // --- Top Searchable Combobox Logic ---
@@ -484,6 +508,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // --- Real-Time Background Sync with ScholaRise Supabase Database ---
+  async function syncLiveDatabase() {
+    const supabaseUrl = 'https://vlnedcuhctgncpqbcbkh.supabase.co';
+    const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsbmVkY3VoY3RnbmNwcWJjYmtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3NTcwNzEsImV4cCI6MjA1OTMzMzA3MX0.n1yFf3I-fwt7wozqcwqXF3Dl6c3MK7mv6qakw_xEebc';
+
+    try {
+      const resp = await fetch(`${supabaseUrl}/rest/v1/scholarships?select=*&order=created_at.desc&limit=200`, {
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`
+        }
+      });
+      if (!resp.ok) return;
+
+      const freshRecords = await resp.json();
+      if (!Array.isArray(freshRecords) || freshRecords.length === 0) return;
+
+      const updatedItems = [];
+      const seen = new Set();
+
+      freshRecords.forEach(s => {
+        const name = (s.name || '').trim();
+        if (!name || seen.has(name.toLowerCase())) return;
+        seen.add(name.toLowerCase());
+
+        const cleanAmount = cleanHtmlText(s.amount) || 'Up to ₹ 50,000';
+        const cleanEligibility = cleanHtmlText(s.description) || cleanHtmlText(s.eligibility) || 'Check official guidelines for complete eligibility.';
+        const deadline = formatFullDate(s.deadline);
+        const website = (s.website_url || 'scholarise.in').replace('https://', '').replace('http://', '').replace(/\/+$/, '');
+        const badge = (s.category || 'SCHOLARSHIP UPDATE').replace('_', ' ').toUpperCase();
+
+        updatedItems.push({
+          id: s.id,
+          name: name,
+          badge: badge.length <= 22 ? badge : 'SCHOLARSHIP UPDATE',
+          amount: cleanAmount,
+          deadline: deadline,
+          website: website,
+          full_website: s.website_url,
+          eligibility: cleanEligibility,
+          category: s.category || 'SCHOLARSHIP'
+        });
+      });
+
+      // Sort A to Z
+      updatedItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+      // Update in-memory list
+      liveList.length = 0;
+      liveList.push(...updatedItems);
+      renderModalList(liveList);
+      console.log(`[ScholaRise Live Sync] Successfully synchronized ${liveList.length} scholarships from live database.`);
+    } catch (err) {
+      console.log('[ScholaRise Live Sync] Working from local database snapshot:', err);
+    }
+  }
+
   // --- Export Functions ---
   async function generateCanvas() {
     exportModal.classList.remove('hidden');
@@ -573,5 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (liveList.length > 0) {
     window.loadScholarship(liveList[0]);
   }
+
+  // Trigger live background sync with Supabase
+  syncLiveDatabase();
 
 });
